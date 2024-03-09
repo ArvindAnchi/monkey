@@ -28,14 +28,18 @@ describe('Lexer', () => {
     })
 
     test('Sample tokens 2', () => {
-        const input = `let five = 5;
+        const input = `
+            let five = 5;
             let ten = 10;
 
             let add = fn(x, y) {
               x + y;
             };
 
-            let result = add(five, ten);`
+            let result = add(five, ten);
+            !-/*5;
+            5 < 10 > 5;
+        `
         const expectedTokens = [
             { eType: Token.LET, eLiteral: "let" },
             { eType: Token.IDENT, eLiteral: "five" },
@@ -73,6 +77,18 @@ describe('Lexer', () => {
             { eType: Token.IDENT, eLiteral: "ten" },
             { eType: Token.RPAREN, eLiteral: ")" },
             { eType: Token.SEMICOLON, eLiteral: ";" },
+            { eType: Token.BANG, eLiteral: "!" },
+            { eType: Token.MINUS, eLiteral: "-" },
+            { eType: Token.SLASH, eLiteral: "/" },
+            { eType: Token.ASTERISK, eLiteral: "*" },
+            { eType: Token.INT, eLiteral: "5" },
+            { eType: Token.SEMICOLON, eLiteral: ";" },
+            { eType: Token.INT, eLiteral: "5" },
+            { eType: Token.LT, eLiteral: "<" },
+            { eType: Token.INT, eLiteral: "10" },
+            { eType: Token.GT, eLiteral: ">" },
+            { eType: Token.INT, eLiteral: "5" },
+            { eType: Token.SEMICOLON, eLiteral: ";" },
             { eType: Token.EOF, eLiteral: '' },
         ]
         const lexer = new Lexer(input)
@@ -80,8 +96,8 @@ describe('Lexer', () => {
         for (const eTok of expectedTokens) {
             const tok = lexer.NextToken()
 
-            expect(tok.Type).toStrictEqual(eTok.eType)
             expect(tok.Literal).toStrictEqual(eTok.eLiteral)
+            expect(tok.Type).toStrictEqual(eTok.eType)
         }
     })
 })

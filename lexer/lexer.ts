@@ -9,6 +9,10 @@ function newToken(tType: string, tLiteral: string) {
     return tok
 }
 
+function isDigit(ch: string) {
+    return '0'.charCodeAt(0) <= ch.charCodeAt(0) && '9'.charCodeAt(0) >= ch.charCodeAt(0)
+}
+
 function isLetter(ch: string) {
     return 'a'.charCodeAt(0) <= ch.charCodeAt(0) && 'z'.charCodeAt(0) >= ch.charCodeAt(0) ||
         'A'.charCodeAt(0) <= ch.charCodeAt(0) && 'Z'.charCodeAt(0) >= ch.charCodeAt(0) ||
@@ -33,12 +37,38 @@ export class Lexer {
     NextToken() {
         let tok = new Token()
 
+        this.skipWhitespace()
+
         switch (this.ch) {
             case '=':
                 tok = newToken(Token.ASSIGN, this.ch)
                 break
             case '+':
                 tok = newToken(Token.PLUS, this.ch)
+                break
+            case '-':
+                tok = newToken(Token.MINUS, this.ch)
+                break
+            case '!':
+                tok = newToken(Token.BANG, this.ch)
+                break
+            case '/':
+                tok = newToken(Token.SLASH, this.ch)
+                break
+            case '*':
+                tok = newToken(Token.ASTERISK, this.ch)
+                break
+            case '<':
+                tok = newToken(Token.LT, this.ch)
+                break
+            case '>':
+                tok = newToken(Token.GT, this.ch)
+                break
+            case ';':
+                tok = newToken(Token.SEMICOLON, this.ch)
+                break
+            case ',':
+                tok = newToken(Token.COMMA, this.ch)
                 break
             case ',':
                 tok = newToken(Token.COMMA, this.ch)
@@ -65,10 +95,17 @@ export class Lexer {
             default:
                 if (isLetter(this.ch)) {
                     tok.Literal = this.readIdent()
+                    tok.Type = tok.lookupIdent(tok.Literal)
+
                     return tok
-                } else {
-                    tok = newToken(Token.ILLEGAL, this.ch)
+                } else if (isDigit(this.ch)) {
+                    tok.Literal = this.readNumber()
+                    tok.Type = Token.INT
+
+                    return tok
                 }
+
+                tok = newToken(Token.ILLEGAL, this.ch)
         }
 
         this.readChar()
@@ -87,6 +124,16 @@ export class Lexer {
         this.readPosition += 1
     }
 
+    readNumber() {
+        const pos = this.position
+
+        while (isDigit(this.ch)) {
+            this.readChar()
+        }
+
+        return this.input.slice(pos, this.position)
+    }
+
     readIdent() {
         const pos = this.position
 
@@ -95,6 +142,12 @@ export class Lexer {
         }
 
         return this.input.slice(pos, this.position)
+    }
+
+    skipWhitespace() {
+        while (this.ch == ' ' || this.ch == '\t' || this.ch == '\n' || this.ch == '\r') {
+            this.readChar()
+        }
     }
 }
 
