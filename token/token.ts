@@ -32,6 +32,11 @@ export class Token {
 
 	static FUNCTION = 'FUNCTION'
 	static LET = 'LET'
+	static TRUE = "TRUE"
+	static FALSE = "FALSE"
+	static IF = "IF"
+	static ELSE = "ELSE"
+	static RETURN = "RETURN"
 
 	constructor() {
 		this.Type = ''
@@ -39,7 +44,12 @@ export class Token {
 
 		this.keywords = {
 			'fn': Token.FUNCTION,
-			'let': Token.LET
+			'let': Token.LET,
+			"true": Token.TRUE,
+			"false": Token.FALSE,
+			"if": Token.IF,
+			"else": Token.ELSE,
+			"return": Token.RETURN,
 		}
 	}
 

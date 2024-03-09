@@ -39,6 +39,12 @@ describe('Lexer', () => {
             let result = add(five, ten);
             !-/*5;
             5 < 10 > 5;
+
+            if (5 < 10) {
+                return true;
+            } else {
+                return false;
+            }
         `
         const expectedTokens = [
             { eType: Token.LET, eLiteral: "let" },
@@ -89,6 +95,23 @@ describe('Lexer', () => {
             { eType: Token.GT, eLiteral: ">" },
             { eType: Token.INT, eLiteral: "5" },
             { eType: Token.SEMICOLON, eLiteral: ";" },
+            { eType: Token.IF, eLiteral: "if" },
+            { eType: Token.LPAREN, eLiteral: "(" },
+            { eType: Token.INT, eLiteral: "5" },
+            { eType: Token.LT, eLiteral: "<" },
+            { eType: Token.INT, eLiteral: "10" },
+            { eType: Token.RPAREN, eLiteral: ")" },
+            { eType: Token.LBRACE, eLiteral: "{" },
+            { eType: Token.RETURN, eLiteral: "return" },
+            { eType: Token.TRUE, eLiteral: "true" },
+            { eType: Token.SEMICOLON, eLiteral: ";" },
+            { eType: Token.RBRACE, eLiteral: "}" },
+            { eType: Token.ELSE, eLiteral: "else" },
+            { eType: Token.LBRACE, eLiteral: "{" },
+            { eType: Token.RETURN, eLiteral: "return" },
+            { eType: Token.FALSE, eLiteral: "false" },
+            { eType: Token.SEMICOLON, eLiteral: ";" },
+            { eType: Token.RBRACE, eLiteral: "}" },
             { eType: Token.EOF, eLiteral: '' },
         ]
         const lexer = new Lexer(input)
