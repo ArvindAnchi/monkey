@@ -41,7 +41,14 @@ export class Lexer {
 
         switch (this.ch) {
             case '=':
-                tok = newToken(Token.ASSIGN, this.ch)
+                if (this.peekChar() == '=') {
+                    const ch = this.ch
+                    this.readChar()
+
+                    tok = newToken(Token.EQ, ch + this.ch)
+                } else {
+                    tok = newToken(Token.ASSIGN, this.ch)
+                }
                 break
             case '+':
                 tok = newToken(Token.PLUS, this.ch)
@@ -50,7 +57,14 @@ export class Lexer {
                 tok = newToken(Token.MINUS, this.ch)
                 break
             case '!':
-                tok = newToken(Token.BANG, this.ch)
+                if (this.peekChar() == '=') {
+                    const ch = this.ch
+                    this.readChar()
+
+                    tok = newToken(Token.NOT_EQ, ch + this.ch)
+                } else {
+                    tok = newToken(Token.BANG, this.ch)
+                }
                 break
             case '/':
                 tok = newToken(Token.SLASH, this.ch)
@@ -111,6 +125,14 @@ export class Lexer {
         this.readChar()
 
         return tok
+    }
+
+    peekChar() {
+        if (this.readPosition >= this.input.length) {
+            return '\0'
+        } else {
+            return this.input[this.readPosition]
+        }
     }
 
     readChar() {

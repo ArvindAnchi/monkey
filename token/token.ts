@@ -21,6 +21,8 @@ export class Token {
 
 	static LT = "<"
 	static GT = ">"
+	static EQ = "=="
+	static NOT_EQ = "!="
 
 	static COMMA = ','
 	static SEMICOLON = ';'

@@ -45,6 +45,9 @@ describe('Lexer', () => {
             } else {
                 return false;
             }
+
+            10 == 10;
+            10 != 9;
         `
         const expectedTokens = [
             { eType: Token.LET, eLiteral: "let" },
@@ -112,6 +115,14 @@ describe('Lexer', () => {
             { eType: Token.FALSE, eLiteral: "false" },
             { eType: Token.SEMICOLON, eLiteral: ";" },
             { eType: Token.RBRACE, eLiteral: "}" },
+            { eType: Token.INT, eLiteral: "10" },
+            { eType: Token.EQ, eLiteral: "==" },
+            { eType: Token.INT, eLiteral: "10" },
+            { eType: Token.SEMICOLON, eLiteral: ";" },
+            { eType: Token.INT, eLiteral: "10" },
+            { eType: Token.NOT_EQ, eLiteral: "!=" },
+            { eType: Token.INT, eLiteral: "9" },
+            { eType: Token.SEMICOLON, eLiteral: ";" },
             { eType: Token.EOF, eLiteral: '' },
         ]
         const lexer = new Lexer(input)
