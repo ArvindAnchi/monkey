@@ -47,11 +47,11 @@ describe('Parser', () => {
         for (let i = 0; i < program.statements.length; i++) {
             const stmt = program.statements[i]
 
-            expect(stmt.TokenLiteral()).toBe('let')
+            expect(stmt.tokenLiteral()).toBe('let')
 
             if (is<LetStatement>(stmt, () => 'name' in stmt)) {
                 expect(stmt.name?.value).toBe(tests[i].eIdent)
-                expect(stmt.name?.TokenLiteral()).toBe(tests[i].eIdent)
+                expect(stmt.name?.tokenLiteral()).toBe(tests[i].eIdent)
             }
         }
     })
@@ -74,7 +74,7 @@ describe('Parser', () => {
         for (let i = 0; i < program.statements.length; i++) {
             const stmt = program.statements[i]
 
-            expect(stmt.TokenLiteral()).toBe('return')
+            expect(stmt.tokenLiteral()).toBe('return')
         }
     })
 })

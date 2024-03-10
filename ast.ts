@@ -1,7 +1,8 @@
 import { Token } from "./token"
 
 interface Node {
-    TokenLiteral(): string
+    tokenLiteral(): string
+    asString(): string
 }
 
 export interface Statement extends Node {
@@ -22,7 +23,17 @@ export class Program {
     tokenLiteral(): string {
         if (this.statements.length === 0) { return "" }
 
-        return this.statements[0].TokenLiteral()
+        return this.statements[0].tokenLiteral()
+    }
+
+    asString() {
+        let pString = ''
+
+        for (const stmt of this.statements) {
+            pString += stmt.asString()
+        }
+
+        return pString
     }
 }
 
@@ -31,8 +42,11 @@ export class Identifier implements Expression {
     value: string = ''
 
     expressionNode() { }
-    TokenLiteral(): string {
+    tokenLiteral(): string {
         return this.token.Literal
+    }
+    asString() {
+        return this.value
     }
 }
 
@@ -42,8 +56,19 @@ export class LetStatement implements Statement {
     value?: Expression
 
     statementNode() { }
-    TokenLiteral(): string {
+    tokenLiteral(): string {
         return this.token.Literal
+    }
+    asString() {
+        let sString = ''
+
+        sString += this.tokenLiteral + ' '
+        sString += this.name?.asString() + ' '
+        sString += ' = '
+        sString += this.value?.asString()
+        sString += ';'
+
+        return sString
     }
 }
 
@@ -52,8 +77,35 @@ export class ReturnStatement implements Statement {
     value?: Expression
 
     statementNode() { }
-    TokenLiteral(): string {
+    tokenLiteral(): string {
         return this.token.Literal
+    }
+    asString() {
+        let sString = ''
+
+        sString += this.tokenLiteral + ' '
+        sString += this.value?.asString()
+        sString += ';'
+
+        return sString
+    }
+}
+
+export class ExpressionStatement implements Statement {
+    token: Token = new Token()
+    expression?: Expression
+
+    statementNode() { }
+    tokenLiteral(): string {
+        return this.token.Literal
+    }
+    asString() {
+        let sString = ''
+
+        sString += this.expression?.asString()
+        sString += ';'
+
+        return sString
     }
 }
 
