@@ -2,7 +2,7 @@ import { describe, test, expect } from '@jest/globals'
 
 import { Lexer } from '../lexer'
 import { Parser } from '../parser'
-import { LetStatement, ReturnStatement } from '../ast'
+import { LetStatement } from '../ast'
 
 function is<T>(obj: any, checker: () => boolean): obj is T {
     return checker()
