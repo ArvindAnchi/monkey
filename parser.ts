@@ -1,6 +1,22 @@
-import { Identifier, LetStatement, Program, ReturnStatement, Statement } from './ast'
+import { Expression, ExpressionStatement, Identifier, LetStatement, Program, ReturnStatement, Statement } from './ast'
 import { Lexer } from './lexer'
 import { Token, TokenType } from './token'
+
+type prefixParseFunc = () => Expression
+type infixParseFunc = (ex: Expression) => Expression
+
+enum precedence {
+    LOWEST,
+    EQUALS,
+    LESSGREATER,
+    SUM,
+    PRODUCT,
+    PREFIX,
+    CALL
+}
+
+const prefixParseFuncs: Record<TokenType, prefixParseFunc> = {}
+const infixParseFuncs: Record<TokenType, infixParseFunc> = {}
 
 export class Parser {
     private lex: Lexer
@@ -49,12 +65,33 @@ export class Parser {
         this.errors.push(`Expected '${t}' got ${this.peekToken.Type}`)
     }
 
+    private parseIdentifier(parser: Parser) {
+        return () => {
+            const ident = new Identifier()
+
+            ident.token = parser.curToken
+            ident.value = parser.curToken.Literal
+
+            return ident
+        }
+    }
+
     getErrors() {
         return this.errors
     }
 
+    registerPrefixFunc(tokenType: TokenType, fn: prefixParseFunc) {
+        prefixParseFuncs[tokenType] = fn
+    }
+
+    registerInfixFunc(tokenType: TokenType, fn: prefixParseFunc) {
+        infixParseFuncs[tokenType] = fn
+    }
+
     parseProgram() {
         const program = new Program()
+
+        this.registerPrefixFunc(Token.IDENT, this.parseIdentifier(this))
 
         while (this.curToken.Type !== Token.EOF) {
             const stmt = this.parseStatement()
@@ -76,7 +113,7 @@ export class Parser {
             case Token.RETURN:
                 return this.parseReturnStatement()
             default:
-                return null
+                return this.parseExpressionStatement()
         }
     }
 
@@ -112,4 +149,26 @@ export class Parser {
 
         return stmt
     }
+
+    parseExpressionStatement() {
+        const stmt = new ExpressionStatement()
+
+        stmt.token = this.curToken
+        stmt.expression = this.parseExpression()
+
+        if (this.peekTokenIs(Token.SEMICOLON)) {
+            this.nextToken()
+        }
+
+        return stmt
+    }
+
+    parseExpression() {
+        const prefix = prefixParseFuncs[this.curToken.Type]
+
+        if (prefix === null) { return null }
+
+        return prefix()
+    }
 }
+

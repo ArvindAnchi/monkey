@@ -77,5 +77,24 @@ describe('Parser', () => {
             expect(stmt.tokenLiteral()).toBe('return')
         }
     })
+
+    test('Identifier statements', () => {
+        const input = 'foobar;'
+
+        const l = new Lexer(input)
+        const p = new Parser(l)
+
+        const program = p.parseProgram()
+
+        checkParserErrors(p)
+        expect(program).not.toBeNull()
+        expect(program.statements.length).toBe(1)
+
+        for (let i = 0; i < program.statements.length; i++) {
+            const stmt = program.statements[i]
+
+            expect(stmt.tokenLiteral()).toBe('foobar')
+        }
+    })
 })
 
