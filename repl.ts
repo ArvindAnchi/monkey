@@ -2,7 +2,7 @@ import { createInterface } from 'node:readline/promises'
 import { stdin as input, stdout as output } from 'node:process'
 
 import { Lexer } from './lexer'
-import { Token } from './token'
+import { Parser } from './parser'
 
 const prompt = '>> '
 
@@ -18,10 +18,23 @@ export async function start() {
         }
 
         const lexer = new Lexer(c)
+        const parser = new Parser(lexer)
 
-        for (let tok = lexer.NextToken(); tok.Type != Token.EOF; tok = lexer.NextToken()) {
-            console.log({ Literal: tok.Literal, Type: tok.Type })
+        const program = parser.parseProgram()
+
+        const pErrs = parser.getErrors()
+
+        if (pErrs.length > 0) {
+            console.error(`  ERROR: Got ${pErrs.length} parsing errors`)
+
+            for (const err of pErrs) {
+                console.error(`    ${err}`)
+            }
+
+            continue
         }
+
+        console.log(program.asString())
     }
 }
 
