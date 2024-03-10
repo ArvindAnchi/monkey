@@ -55,8 +55,8 @@ export class Identifier implements Expression {
 
 export class LetStatement implements Statement {
     token: Token = new Token()
-    name?: Identifier
-    value?: Expression
+    name: Identifier | null = null
+    value: Expression | null = null
 
     statementNode() { }
     tokenLiteral(): string {
@@ -77,7 +77,7 @@ export class LetStatement implements Statement {
 
 export class ReturnStatement implements Statement {
     token: Token = new Token()
-    value?: Expression
+    value: Expression | null = null
 
     statementNode() { }
     tokenLiteral(): string {
@@ -96,7 +96,7 @@ export class ReturnStatement implements Statement {
 
 export class ExpressionStatement implements Statement {
     token: Token = new Token()
-    expression?: Expression
+    expression: Expression | null = null
 
     statementNode() { }
     tokenLiteral(): string {
