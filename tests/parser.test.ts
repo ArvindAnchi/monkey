@@ -2,7 +2,7 @@ import { describe, test, expect } from '@jest/globals'
 
 import { Lexer } from '../lexer'
 import { Parser } from '../parser'
-import { LetStatement } from '../ast'
+import { LetStatement, ReturnStatement } from '../ast'
 
 function is<T>(obj: any, checker: () => boolean): obj is T {
     return checker()
@@ -53,6 +53,28 @@ describe('Parser', () => {
                 expect(stmt.name?.value).toBe(tests[i].eIdent)
                 expect(stmt.name?.TokenLiteral()).toBe(tests[i].eIdent)
             }
+        }
+    })
+
+    test('Return statements', () => {
+        const input = `
+            return 5;
+            return 10;
+            return 993322;
+        `
+        const l = new Lexer(input)
+        const p = new Parser(l)
+
+        const program = p.parseProgram()
+
+        checkParserErrors(p)
+        expect(program).not.toBeNull()
+        expect(program.statements.length).toBe(3)
+
+        for (let i = 0; i < program.statements.length; i++) {
+            const stmt = program.statements[i]
+
+            expect(stmt.TokenLiteral()).toBe('return')
         }
     })
 })

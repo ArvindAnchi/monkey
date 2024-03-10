@@ -47,3 +47,13 @@ export class LetStatement implements Statement {
     }
 }
 
+export class ReturnStatement implements Statement {
+    token: Token = new Token()
+    value?: Expression
+
+    statementNode() { }
+    TokenLiteral(): string {
+        return this.token.Literal
+    }
+}
+
