@@ -1,8 +1,8 @@
 import { createInterface } from 'node:readline/promises'
 import { stdin as input, stdout as output } from 'node:process'
 
-import { Lexer } from './lexer/lexer'
-import { Token } from './token/token'
+import { Lexer } from './lexer'
+import { Token } from './token'
 
 const prompt = '>> '
 

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "@jest/globals"
 
-import { Lexer } from "../lexer/lexer"
-import { Token } from "../token/token"
+import { Lexer } from "../lexer"
+import { Token } from "../token"
 
 describe('Lexer', () => {
     test('Sample tokens 1', () => {

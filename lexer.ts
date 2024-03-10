@@ -1,4 +1,4 @@
-import { Token } from "../token/token"
+import { Token } from "./token"
 
 function newToken(tType: string, tLiteral: string) {
     const tok = new Token()

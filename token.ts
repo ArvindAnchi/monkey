@@ -1,10 +1,8 @@
-type TokenType = String
+export type TokenType = String
 
 export class Token {
 	Type: TokenType
 	Literal: string
-
-	keywords: Record<string, string>
 
 	static ILLEGAL = 'ILLEGAL'
 	static EOF = 'EOF'
@@ -43,8 +41,10 @@ export class Token {
 	constructor() {
 		this.Type = ''
 		this.Literal = ''
+	}
 
-		this.keywords = {
+	lookupIdent(ident: string) {
+		const keywords: Record<string, string> = {
 			'fn': Token.FUNCTION,
 			'let': Token.LET,
 			"true": Token.TRUE,
@@ -53,11 +53,9 @@ export class Token {
 			"else": Token.ELSE,
 			"return": Token.RETURN,
 		}
-	}
 
-	lookupIdent(ident: string) {
-		if (Object.keys(this.keywords).includes(ident)) {
-			return this.keywords[ident]
+		if (Object.keys(keywords).includes(ident)) {
+			return keywords[ident]
 		}
 
 		return Token.IDENT
