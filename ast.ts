@@ -10,6 +10,9 @@ export interface Statement extends Node {
 }
 
 export interface Expression extends Node {
+    token: Token
+    value: string
+
     expressionNode(): void
 }
 
@@ -62,8 +65,8 @@ export class LetStatement implements Statement {
     asString() {
         let sString = ''
 
-        sString += this.tokenLiteral + ' '
-        sString += this.name?.asString() + ' '
+        sString += this.tokenLiteral() + ' '
+        sString += this.name?.asString()
         sString += ' = '
         sString += this.value?.asString()
         sString += ';'
@@ -83,7 +86,7 @@ export class ReturnStatement implements Statement {
     asString() {
         let sString = ''
 
-        sString += this.tokenLiteral + ' '
+        sString += this.tokenLiteral() + ' '
         sString += this.value?.asString()
         sString += ';'
 
