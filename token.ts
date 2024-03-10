@@ -1,4 +1,4 @@
-export type TokenType = String
+export type TokenType = string
 
 export class Token {
 	Type: TokenType
