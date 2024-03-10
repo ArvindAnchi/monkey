@@ -8,6 +8,8 @@ export class Parser {
     private curToken: Token
     private peekToken: Token
 
+    private errors: string[]
+
     constructor(lexer: Lexer) {
         this.lex = lexer
 
@@ -16,6 +18,8 @@ export class Parser {
 
         this.nextToken()
         this.nextToken()
+
+        this.errors = []
     }
 
     private nextToken() {
@@ -33,11 +37,20 @@ export class Parser {
 
     private expectPeek(t: TokenType) {
         if (!this.peekTokenIs(t)) {
+            this.peekError(t)
             return false
         }
 
         this.nextToken()
         return true
+    }
+
+    private peekError(t: TokenType) {
+        this.errors.push(`Expected '${t}' got ${this.peekToken.Type}`)
+    }
+
+    getErrors() {
+        return this.errors
     }
 
     parseProgram() {

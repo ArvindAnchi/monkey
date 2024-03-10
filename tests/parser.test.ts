@@ -8,6 +8,20 @@ function is<T>(obj: any, checker: () => boolean): obj is T {
     return checker()
 }
 
+function checkParserErrors(p: Parser) {
+    const errors = p.getErrors()
+
+    if (errors.length === 0) { return }
+
+    console.error(`Got ${errors.length} parsing errors`)
+
+    for (const msg of errors) {
+        console.error(` -> ${msg}`)
+    }
+
+    throw new Error('Parser failed with errors')
+}
+
 describe('Parser', () => {
     test('Let statements', () => {
         const input = `
@@ -26,6 +40,7 @@ describe('Parser', () => {
             { eIdent: 'foobar' },
         ]
 
+        checkParserErrors(p)
         expect(program).not.toBeNull()
         expect(program.statements.length).toBe(test.length)
 
