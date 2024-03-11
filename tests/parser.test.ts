@@ -2,7 +2,7 @@ import { describe, test, expect } from '@jest/globals'
 
 import { Lexer } from '../lexer'
 import { Parser } from '../parser'
-import { LetStatement } from '../ast'
+import { ExpressionStatement, Identifier, LetStatement, ReturnStatement } from '../ast'
 
 function is<T>(obj: any, checker: () => boolean): obj is T {
     return checker()
@@ -46,10 +46,13 @@ describe('Parser', () => {
 
         for (let i = 0; i < program.statements.length; i++) {
             const stmt = program.statements[i]
+            const isLet = is<LetStatement>(stmt, () => 'name' in stmt)
 
+            expect(isLet).toBeTruthy()
+            expect(stmt).toBeInstanceOf(LetStatement)
             expect(stmt.tokenLiteral()).toBe('let')
 
-            if (is<LetStatement>(stmt, () => 'name' in stmt)) {
+            if (isLet) {
                 expect(stmt.name?.value).toBe(tests[i].eIdent)
                 expect(stmt.name?.tokenLiteral()).toBe(tests[i].eIdent)
             }
@@ -73,7 +76,10 @@ describe('Parser', () => {
 
         for (let i = 0; i < program.statements.length; i++) {
             const stmt = program.statements[i]
+            const isRet = is<ReturnStatement>(stmt, () => 'value' in stmt)
 
+            expect(isRet).toBeTruthy()
+            expect(stmt).toBeInstanceOf(ReturnStatement)
             expect(stmt.tokenLiteral()).toBe('return')
         }
     })
@@ -92,8 +98,16 @@ describe('Parser', () => {
 
         for (let i = 0; i < program.statements.length; i++) {
             const stmt = program.statements[i]
+            const isExp = is<ExpressionStatement>(stmt, () => 'expression' in stmt)
 
+            expect(isExp).toBeTruthy()
+            expect(stmt).toBeInstanceOf(ExpressionStatement)
             expect(stmt.tokenLiteral()).toBe('foobar')
+
+            if (isExp) {
+                expect(stmt.expression).toBeInstanceOf(Identifier)
+                expect(stmt.expression?.value).toBe('foobar')
+            }
         }
     })
 })
