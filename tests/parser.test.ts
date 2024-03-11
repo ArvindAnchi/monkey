@@ -110,5 +110,32 @@ describe('Parser', () => {
             }
         }
     })
+
+    test('Int statements', () => {
+        const input = '5;'
+
+        const l = new Lexer(input)
+        const p = new Parser(l)
+
+        const program = p.parseProgram()
+
+        checkParserErrors(p)
+        expect(program).not.toBeNull()
+        expect(program.statements.length).toBe(1)
+
+        for (let i = 0; i < program.statements.length; i++) {
+            const stmt = program.statements[i]
+            const isExp = is<ExpressionStatement>(stmt, () => 'expression' in stmt)
+
+            expect(isExp).toBeTruthy()
+            expect(stmt).toBeInstanceOf(ExpressionStatement)
+            expect(stmt.tokenLiteral()).toBe('5')
+
+            if (isExp) {
+                expect(stmt.expression).toBeInstanceOf(Identifier)
+                expect(stmt.expression?.value).toBe(5)
+            }
+        }
+    })
 })
 

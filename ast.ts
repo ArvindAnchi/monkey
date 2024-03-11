@@ -11,7 +11,6 @@ export interface Statement extends Node {
 
 export interface Expression extends Node {
     token: Token
-    value: string
 
     expressionNode(): void
 }
@@ -109,6 +108,19 @@ export class ExpressionStatement implements Statement {
         sString += ';'
 
         return sString
+    }
+}
+
+export class IntegerLiteral implements Expression {
+    token: Token = new Token()
+    value: number = 0
+
+    expressionNode() { }
+    tokenLiteral(): string {
+        return this.token.Literal
+    }
+    asString() {
+        return this.value.toString()
     }
 }
 

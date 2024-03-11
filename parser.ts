@@ -1,9 +1,9 @@
-import { Expression, ExpressionStatement, Identifier, LetStatement, Program, ReturnStatement, Statement } from './ast'
+import { Expression, ExpressionStatement, Identifier, IntegerLiteral, LetStatement, Program, ReturnStatement, Statement } from './ast'
 import { Lexer } from './lexer'
 import { Token, TokenType } from './token'
 
-type prefixParseFunc = () => Expression
-type infixParseFunc = (ex: Expression) => Expression
+type prefixParseFunc = () => Expression | null
+type infixParseFunc = (ex: Expression) => Expression | null
 
 enum precedence {
     LOWEST,
@@ -76,6 +76,24 @@ export class Parser {
         }
     }
 
+    private parseIntegerLiteral(parser: Parser) {
+        return () => {
+            const val = Number(parser.curToken.Literal)
+
+            if (isNaN(val)) {
+                parser.errors.push(`Invalid literal '${parser.curToken.Literal}': expcting 'int'`)
+                return null
+            }
+
+            const lit = new IntegerLiteral()
+
+            lit.token = parser.curToken
+            lit.value = val
+
+            return lit
+        }
+    }
+
     getErrors() {
         return this.errors
     }
@@ -92,6 +110,7 @@ export class Parser {
         const program = new Program()
 
         this.registerPrefixFunc(Token.IDENT, this.parseIdentifier(this))
+        this.registerPrefixFunc(Token.INT, this.parseIntegerLiteral(this))
 
         while (this.curToken.Type !== Token.EOF) {
             const stmt = this.parseStatement()
