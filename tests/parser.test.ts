@@ -2,7 +2,7 @@ import { describe, test, expect } from '@jest/globals'
 
 import { Lexer } from '../lexer'
 import { Parser } from '../parser'
-import { ExpressionStatement, Identifier, LetStatement, ReturnStatement } from '../ast'
+import { ExpressionStatement, Identifier, IntegerLiteral, LetStatement, ReturnStatement } from '../ast'
 
 function is<T>(obj: any, checker: () => boolean): obj is T {
     return checker()
@@ -105,8 +105,13 @@ describe('Parser', () => {
             expect(stmt.tokenLiteral()).toBe('foobar')
 
             if (isExp) {
+                const exp = stmt.expression
+                const isIdent = is<Identifier>(exp, () => 'expression' in (exp ?? {}))
+
                 expect(stmt.expression).toBeInstanceOf(Identifier)
-                expect(stmt.expression?.value).toBe('foobar')
+                if (isIdent) {
+                    expect(exp.value).toBe('foobar')
+                }
             }
         }
     })
@@ -132,8 +137,13 @@ describe('Parser', () => {
             expect(stmt.tokenLiteral()).toBe('5')
 
             if (isExp) {
-                expect(stmt.expression).toBeInstanceOf(Identifier)
-                expect(stmt.expression?.value).toBe(5)
+                const exp = stmt.expression
+                const isIdent = is<IntegerLiteral>(exp, () => 'expression' in (exp ?? {}))
+
+                expect(stmt.expression).toBeInstanceOf(IntegerLiteral)
+                if (isIdent) {
+                    expect(exp.value).toBe(5)
+                }
             }
         }
     })
