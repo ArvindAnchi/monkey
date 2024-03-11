@@ -166,7 +166,7 @@ export class Parser {
     parseExpression() {
         const prefix = prefixParseFuncs[this.curToken.Type]
 
-        if (prefix === null) { return null }
+        if (prefix == null) { return null }
 
         return prefix()
     }
