@@ -139,7 +139,30 @@ export class PrefixExpression implements Expression {
         out += '('
         out += this.operator
         out += this.right?.asString()
+        out += ')'
+
+        return out
+    }
+}
+
+export class InfixExpression implements Expression {
+    token: Token = new Token()
+    left: Expression | null = null
+    operator: string = ''
+    right: Expression | null = null
+
+    expressionNode() { }
+    tokenLiteral(): string {
+        return this.token.Literal
+    }
+    asString() {
+        let out = ''
+
         out += '('
+        out += this.left?.asString()
+        out += ' ' + this.operator + ' '
+        out += this.right?.asString()
+        out += ')'
 
         return out
     }

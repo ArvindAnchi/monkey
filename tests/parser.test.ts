@@ -2,7 +2,16 @@ import { describe, test, expect } from 'vitest'
 
 import { Lexer } from '../lexer'
 import { Parser } from '../parser'
-import { Expression, ExpressionStatement, Identifier, IntegerLiteral, LetStatement, PrefixExpression, ReturnStatement } from '../ast'
+import {
+    Expression,
+    ExpressionStatement,
+    Identifier,
+    IntegerLiteral,
+    LetStatement,
+    PrefixExpression,
+    ReturnStatement,
+    InfixExpression
+} from '../ast'
 
 function is<T>(obj: any, checker: () => boolean): obj is T {
     return checker()
@@ -190,6 +199,49 @@ describe('Parser', () => {
                 if (isIdent) {
                     expect(exp.operator).toBe(tt.operator)
                     testIntLiteral(exp.right, tt.intValue)
+                }
+            }
+        }
+    })
+
+    test('Infix expressions', () => {
+        const tests = [
+            { input: '5 + 5', left: 5, operator: '+', right: 5 },
+            { input: '5 - 5', left: 5, operator: '-', right: 5 },
+            { input: '5 * 5', left: 5, operator: '*', right: 5 },
+            { input: '5 / 5', left: 5, operator: '/', right: 5 },
+            { input: '5 > 5', left: 5, operator: '>', right: 5 },
+            { input: '5 < 5', left: 5, operator: '<', right: 5 },
+            { input: '5 == 5', left: 5, operator: '==', right: 5 },
+            { input: '5 != 5', left: 5, operator: '!=', right: 5 },
+        ]
+
+        for (const tt of tests) {
+            const lexer = new Lexer(tt.input)
+            const parser = new Parser(lexer)
+
+            const program = parser.parseProgram()
+
+            checkParserErrors(parser)
+
+            expect(program).not.toBeNull()
+            expect(program.statements.length).toBe(1)
+
+            const stmt = program.statements[0]
+            const isExp = is<ExpressionStatement>(stmt, () => 'expression' in stmt)
+
+            expect(isExp).toBeTruthy()
+            expect(stmt).toBeInstanceOf(ExpressionStatement)
+
+            if (isExp) {
+                const exp = stmt.expression
+                const isIdent = is<InfixExpression>(exp, () => 'expression' in (exp ?? {}))
+
+                expect(stmt.expression).toBeInstanceOf(InfixExpression)
+                if (isIdent) {
+                    testIntLiteral(exp.left, tt.left)
+                    expect(exp.operator).toBe(tt.operator)
+                    testIntLiteral(exp.right, tt.right)
                 }
             }
         }
