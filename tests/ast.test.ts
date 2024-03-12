@@ -1,4 +1,4 @@
-import { describe, test, expect } from '@jest/globals'
+import { describe, test, expect } from 'vitest'
 import { Identifier, LetStatement, Program } from '../ast'
 import { Token } from '../token'
 
