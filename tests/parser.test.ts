@@ -52,7 +52,7 @@ describe('Parser', () => {
 
         checkParserErrors(p)
         expect(program).not.toBeNull()
-        expect(program.statements.length).toBe(test.length)
+        expect(program.statements.length).toBe(tests.length)
 
         for (let i = 0; i < program.statements.length; i++) {
             const stmt = program.statements[i]
