@@ -2,7 +2,7 @@ import { describe, test, expect } from '@jest/globals'
 
 import { Lexer } from '../lexer'
 import { Parser } from '../parser'
-import { ExpressionStatement, Identifier, IntegerLiteral, LetStatement, ReturnStatement } from '../ast'
+import { Expression, ExpressionStatement, Identifier, IntegerLiteral, LetStatement, PrefixExpression, ReturnStatement } from '../ast'
 
 function is<T>(obj: any, checker: () => boolean): obj is T {
     return checker()
@@ -20,6 +20,16 @@ function checkParserErrors(p: Parser) {
     }
 
     throw new Error('Parser failed with errors')
+}
+
+function testIntLiteral(il: Expression | null, value: number) {
+    expect(il).toBeTruthy()
+    if (il == null) { return }
+
+    if (!is<IntegerLiteral>(il, () => 'number' in il)) { throw new Error(`Expected IntLiteral, got ${typeof il}`) }
+
+    expect(il.value).toBe(value)
+    expect(il.tokenLiteral()).toBe(value)
 }
 
 describe('Parser', () => {
@@ -116,7 +126,7 @@ describe('Parser', () => {
         }
     })
 
-    test('Int statements', () => {
+    test('Int literals', () => {
         const input = '5;'
 
         const l = new Lexer(input)
@@ -143,6 +153,43 @@ describe('Parser', () => {
                 expect(stmt.expression).toBeInstanceOf(IntegerLiteral)
                 if (isIdent) {
                     expect(exp.value).toBe(5)
+                }
+            }
+        }
+    })
+
+    test('Prefix expressions', () => {
+        const tests = [
+            { input: '!5', operator: '!', intValue: 5 },
+            { input: '-15', operator: '-', intValue: 15 }
+        ]
+
+        for (const tt of tests) {
+            const lexer = new Lexer(tt.input)
+            const parser = new Parser(lexer)
+
+            const program = parser.parseProgram()
+
+            checkParserErrors(parser)
+
+            expect(program).not.toBeNull()
+            expect(program.statements.length).toBe(1)
+
+            const stmt = program.statements[0]
+            const isExp = is<ExpressionStatement>(stmt, () => 'expression' in stmt)
+
+            expect(isExp).toBeTruthy()
+            expect(stmt).toBeInstanceOf(ExpressionStatement)
+            expect(stmt.tokenLiteral()).toBe(tt.operator)
+
+            if (isExp) {
+                const exp = stmt.expression
+                const isIdent = is<PrefixExpression>(exp, () => 'expression' in (exp ?? {}))
+
+                expect(stmt.expression).toBeInstanceOf(PrefixExpression)
+                if (isIdent) {
+                    expect(exp.operator).toBe(tt.operator)
+                    testIntLiteral(exp.right, tt.intValue)
                 }
             }
         }

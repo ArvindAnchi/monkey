@@ -1,11 +1,11 @@
-import { Expression, ExpressionStatement, Identifier, IntegerLiteral, LetStatement, Program, ReturnStatement, Statement } from './ast'
+import { Expression, ExpressionStatement, Identifier, IntegerLiteral, LetStatement, PrefixExpression, Program, ReturnStatement, Statement } from './ast'
 import { Lexer } from './lexer'
 import { Token, TokenType } from './token'
 
 type prefixParseFunc = () => Expression | null
 type infixParseFunc = (ex: Expression) => Expression | null
 
-enum precedence {
+enum Precedence {
     LOWEST,
     EQUALS,
     LESSGREATER,
@@ -94,6 +94,21 @@ export class Parser {
         }
     }
 
+    private parsePrefixExpression(parser: Parser) {
+        return () => {
+            const expr = new PrefixExpression()
+
+            expr.token = parser.curToken
+            expr.operator = parser.curToken.Literal
+
+            parser.nextToken()
+
+            expr.right = parser.parseExpression(Precedence.PREFIX)
+
+            return expr
+        }
+    }
+
     getErrors() {
         return this.errors
     }
@@ -111,6 +126,8 @@ export class Parser {
 
         this.registerPrefixFunc(Token.IDENT, this.parseIdentifier(this))
         this.registerPrefixFunc(Token.INT, this.parseIntegerLiteral(this))
+        this.registerPrefixFunc(Token.BANG, this.parsePrefixExpression(this))
+        this.registerPrefixFunc(Token.MINUS, this.parsePrefixExpression(this))
 
         while (this.curToken.Type !== Token.EOF) {
             const stmt = this.parseStatement()
@@ -173,7 +190,7 @@ export class Parser {
         const stmt = new ExpressionStatement()
 
         stmt.token = this.curToken
-        stmt.expression = this.parseExpression()
+        stmt.expression = this.parseExpression(Precedence.LOWEST)
 
         if (this.peekTokenIs(Token.SEMICOLON)) {
             this.nextToken()
@@ -182,10 +199,13 @@ export class Parser {
         return stmt
     }
 
-    parseExpression() {
+    parseExpression(precedence: Precedence) {
         const prefix = prefixParseFuncs[this.curToken.Type]
 
-        if (prefix == null) { return null }
+        if (prefix == null) {
+            this.errors.push(`No prefix parse function found for ${this.curToken.Type}`)
+            return null
+        }
 
         return prefix()
     }

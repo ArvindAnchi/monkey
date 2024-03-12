@@ -124,3 +124,24 @@ export class IntegerLiteral implements Expression {
     }
 }
 
+export class PrefixExpression implements Expression {
+    token: Token = new Token()
+    operator: string = ''
+    right: Expression | null = null
+
+    expressionNode() { }
+    tokenLiteral(): string {
+        return this.token.Literal
+    }
+    asString() {
+        let out = ''
+
+        out += '('
+        out += this.operator
+        out += this.right?.asString()
+        out += '('
+
+        return out
+    }
+}
+
