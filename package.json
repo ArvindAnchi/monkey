@@ -4,7 +4,7 @@
   "description": "",
   "main": "build/index.js",
   "scripts": {
-    "test": "jest --verbose --silent=false"
+    "tests": "jest --verbose --silent=false"
   },
   "keywords": [],
   "author": "",
