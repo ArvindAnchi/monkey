@@ -105,7 +105,6 @@ export class ExpressionStatement implements Statement {
         let sString = ''
 
         sString += this.expression?.asString()
-        sString += ';'
 
         return sString
     }
