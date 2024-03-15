@@ -1,4 +1,4 @@
-import { Expression, ExpressionStatement, Identifier, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, Program, ReturnStatement, Statement } from './ast'
+import { BooleanExpression, Expression, ExpressionStatement, Identifier, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, Program, ReturnStatement, Statement } from './ast'
 import { Lexer } from './lexer'
 import { Token, TokenType } from './token'
 
@@ -121,6 +121,18 @@ export class Parser {
         }
     }
 
+    private parseiBooleanLiteral(parser: Parser) {
+        return () => {
+            const val = Boolean(parser.curToken.Literal)
+            const lit = new BooleanExpression()
+
+            lit.token = parser.curToken
+            lit.value = val
+
+            return lit
+        }
+    }
+
     private parsePrefixExpression(parser: Parser) {
         return () => {
             const expr = new PrefixExpression()
@@ -172,6 +184,9 @@ export class Parser {
         this.registerPrefixFunc(Token.INT, this.parseIntegerLiteral(this))
         this.registerPrefixFunc(Token.BANG, this.parsePrefixExpression(this))
         this.registerPrefixFunc(Token.MINUS, this.parsePrefixExpression(this))
+        this.registerPrefixFunc(Token.TRUE, this.parseiBooleanLiteral(this))
+        this.registerPrefixFunc(Token.FALSE, this.parseiBooleanLiteral(this))
+
         this.registerInfixFunc(Token.EQ, this.parseInfixExpression(this))
         this.registerInfixFunc(Token.NOT_EQ, this.parseInfixExpression(this))
         this.registerInfixFunc(Token.LT, this.parseInfixExpression(this))

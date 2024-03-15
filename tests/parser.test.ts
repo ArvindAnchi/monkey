@@ -10,7 +10,8 @@ import {
     LetStatement,
     PrefixExpression,
     ReturnStatement,
-    InfixExpression
+    InfixExpression,
+    BooleanExpression
 } from '../ast'
 
 function is<T>(obj: any, checker: () => boolean): obj is T {
@@ -36,6 +37,16 @@ function testIntLiteral(il: Expression | null, value: number) {
     if (il == null) { return }
 
     if (!is<IntegerLiteral>(il, () => 'number' in il)) { throw new Error(`Expected IntLiteral, got ${typeof il}`) }
+
+    expect(il.value).toBe(value)
+    expect(il.tokenLiteral()).toBe(value)
+}
+
+function testBoolLiteral(il: Expression | null, value: boolean) {
+    expect(il).toBeTruthy()
+    if (il == null) { return }
+
+    if (!is<BooleanExpression>(il, () => 'number' in il)) { throw new Error(`Expected IntLiteral, got ${typeof il}`) }
 
     expect(il.value).toBe(value)
     expect(il.tokenLiteral()).toBe(value)
@@ -167,10 +178,44 @@ describe('Parser', () => {
         }
     })
 
+    test('Boolean literals', () => {
+        const input = 'true;'
+
+        const l = new Lexer(input)
+        const p = new Parser(l)
+
+        const program = p.parseProgram()
+
+        checkParserErrors(p)
+        expect(program).not.toBeNull()
+        expect(program.statements.length).toBe(1)
+
+        for (let i = 0; i < program.statements.length; i++) {
+            const stmt = program.statements[i]
+            const isExp = is<ExpressionStatement>(stmt, () => 'expression' in stmt)
+
+            expect(isExp).toBeTruthy()
+            expect(stmt).toBeInstanceOf(ExpressionStatement)
+            expect(stmt.tokenLiteral()).toBe('true')
+
+            if (isExp) {
+                const exp = stmt.expression
+                const isIdent = is<BooleanExpression>(exp, () => 'expression' in (exp ?? {}))
+
+                expect(stmt.expression).toBeInstanceOf(BooleanExpression)
+                if (isIdent) {
+                    expect(exp.value).toBe(true)
+                }
+            }
+        }
+    })
+
     test('Prefix expressions', () => {
         const tests = [
             { input: '!5', operator: '!', intValue: 5 },
-            { input: '-15', operator: '-', intValue: 15 }
+            { input: '-15', operator: '-', intValue: 15 },
+            { input: '!true', operator: '!', boolValue: true },
+            { input: '!false', operator: '!', boolValue: false },
         ]
 
         for (const tt of tests) {
@@ -198,7 +243,8 @@ describe('Parser', () => {
                 expect(stmt.expression).toBeInstanceOf(PrefixExpression)
                 if (isIdent) {
                     expect(exp.operator).toBe(tt.operator)
-                    testIntLiteral(exp.right, tt.intValue)
+                    if (tt.intValue != null) testIntLiteral(exp.right, tt.intValue)
+                    if (tt.boolValue != null) testBoolLiteral(exp.right, tt.boolValue)
                 }
             }
         }
@@ -214,6 +260,9 @@ describe('Parser', () => {
             { input: '5 < 5', left: 5, operator: '<', right: 5 },
             { input: '5 == 5', left: 5, operator: '==', right: 5 },
             { input: '5 != 5', left: 5, operator: '!=', right: 5 },
+            { input: "true == true", left: true, operator: "==", right: true },
+            { input: "true != false", left: true, operator: "!=", right: false },
+            { input: "false == false", left: false, operator: "==", right: false },
         ]
 
         for (const tt of tests) {
@@ -239,9 +288,25 @@ describe('Parser', () => {
 
                 expect(stmt.expression).toBeInstanceOf(InfixExpression)
                 if (isIdent) {
-                    testIntLiteral(exp.left, tt.left)
+                    switch (typeof tt.left) {
+                        case 'number':
+                            testIntLiteral(exp.left, tt.left)
+                            break
+                        case 'boolean':
+                            testBoolLiteral(exp.left, tt.left)
+                            break
+                    }
+
+                    switch (typeof tt.right) {
+                        case 'number':
+                            testIntLiteral(exp.right, tt.right)
+                            break
+                        case 'boolean':
+                            testBoolLiteral(exp.right, tt.right)
+                            break
+                    }
+
                     expect(exp.operator).toBe(tt.operator)
-                    testIntLiteral(exp.right, tt.right)
                 }
             }
         }
@@ -260,7 +325,11 @@ describe('Parser', () => {
             { input: "3 + 4; -5 * 5", expected: "(3 + 4)((-5) * 5)", },
             { input: "5 > 4 == 3 < 4", expected: "((5 > 4) == (3 < 4))", },
             { input: "5 < 4 != 3 > 4", expected: "((5 < 4) != (3 > 4))", },
-            { input: "3 + 4 * 5 == 3 * 1 + 4 * 5", expected: "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))", }
+            { input: "3 + 4 * 5 == 3 * 1 + 4 * 5", expected: "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))", },
+            { input: "true", expected: "true", },
+            { input: "false", expected: "false", },
+            { input: "3 > 5 == false", expected: "((3 > 5) == false)", },
+            { input: "3 < 5 == true", expected: "((3 < 5) == true)", }
         ]
 
         for (const tt of tests) {

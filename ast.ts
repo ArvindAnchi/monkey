@@ -167,3 +167,16 @@ export class InfixExpression implements Expression {
     }
 }
 
+export class BooleanExpression implements Expression {
+    token: Token = new Token()
+    value: boolean = false
+
+    expressionNode() { }
+    tokenLiteral(): string {
+        return this.token.Literal
+    }
+    asString() {
+        return this.token.Literal
+    }
+}
+
