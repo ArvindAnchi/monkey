@@ -11,7 +11,8 @@ import {
     PrefixExpression,
     ReturnStatement,
     InfixExpression,
-    BooleanExpression
+    BooleanExpression,
+    IfExpression
 } from '../ast'
 
 function is<T>(obj: any, checker: () => boolean): obj is T {
@@ -357,6 +358,107 @@ describe('Parser', () => {
 
             checkParserErrors(parser)
             expect(actual).toBe(tt.expected)
+        }
+    })
+
+    test('If expression', () => {
+        const input = 'if (x< y) { x }'
+
+        const lexer = new Lexer(input)
+        const parser = new Parser(lexer)
+
+        const program = parser.parseProgram()
+
+        checkParserErrors(parser)
+
+        expect(program).not.toBeNull()
+        expect(program.statements.length).toBe(1)
+
+        const stmt = program.statements[0]
+        const isExp = is<ExpressionStatement>(stmt, () => 'expression' in stmt)
+
+        expect(isExp).toBeTruthy()
+        expect(stmt).toBeInstanceOf(ExpressionStatement)
+
+        if (isExp) {
+            const exp = stmt.expression
+            const isIfExp = is<IfExpression>(exp, () => 'condition' in (exp ?? {}))
+
+            expect(stmt.expression).toBeInstanceOf(IfExpression)
+
+            if (isIfExp) {
+                testInfixExpression(exp.condition, 'x', '<', 'y')
+                expect(exp.consequence?.statements.length).toBe(1)
+
+                const conExp = exp.consequence?.statements[0]
+                const isConExp = is<ExpressionStatement>(conExp, () => 'expression' in (exp ?? {}))
+
+                expect(conExp).toBeInstanceOf(ExpressionStatement)
+
+                if (isConExp) {
+                    const isIdent = is<Identifier>(conExp, () => 'expression' in (conExp ?? {}))
+
+                    expect(stmt.expression).toBeInstanceOf(Identifier)
+                    if (isIdent) { expect(conExp.value).toBe('x') }
+                }
+
+                expect(exp.alternative?.statements.length).toBeFalsy()
+            }
+        }
+    })
+
+    test('If else expression', () => {
+        const input = 'if (x< y) { x } else { y }'
+
+        const lexer = new Lexer(input)
+        const parser = new Parser(lexer)
+
+        const program = parser.parseProgram()
+
+        checkParserErrors(parser)
+
+        expect(program).not.toBeNull()
+        expect(program.statements.length).toBe(1)
+
+        const stmt = program.statements[0]
+        const isExp = is<ExpressionStatement>(stmt, () => 'expression' in stmt)
+
+        expect(isExp).toBeTruthy()
+        expect(stmt).toBeInstanceOf(ExpressionStatement)
+
+        if (isExp) {
+            const exp = stmt.expression
+            const isIfExp = is<IfExpression>(exp, () => 'condition' in (exp ?? {}))
+
+            expect(stmt.expression).toBeInstanceOf(IfExpression)
+
+            if (isIfExp) {
+                testInfixExpression(exp.condition, 'x', '<', 'y')
+                expect(exp.consequence?.statements.length).toBe(1)
+
+                const conExp = exp.consequence?.statements[0]
+                const altExp = exp.alternative?.statements[0]
+
+                const isConExp = is<ExpressionStatement>(conExp, () => 'expression' in (exp ?? {}))
+                const isAltExp = is<ExpressionStatement>(altExp, () => 'expression' in (exp ?? {}))
+
+                expect(conExp).toBeInstanceOf(ExpressionStatement)
+                expect(altExp).toBeInstanceOf(ExpressionStatement)
+
+                if (isConExp) {
+                    const isIdent = is<Identifier>(conExp, () => 'expression' in (conExp ?? {}))
+
+                    expect(stmt.expression).toBeInstanceOf(Identifier)
+                    if (isIdent) { expect(conExp.value).toBe('x') }
+                }
+
+                if (isAltExp) {
+                    const isIdent = is<Identifier>(altExp, () => 'expression' in (altExp ?? {}))
+
+                    expect(stmt.expression).toBeInstanceOf(Identifier)
+                    if (isIdent) { expect(altExp.value).toBe('y') }
+                }
+            }
         }
     })
 })

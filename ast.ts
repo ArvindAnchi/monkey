@@ -110,6 +110,25 @@ export class ExpressionStatement implements Statement {
     }
 }
 
+export class BlockStatement implements Statement {
+    token: Token = new Token()
+    statements: Statement[] = []
+
+    statementNode() { }
+    tokenLiteral(): string {
+        return this.token.Literal
+    }
+    asString() {
+        let out = ''
+
+        out += this.tokenLiteral() + ' '
+        out += this.value?.asString()
+        out += ';'
+
+        return out
+    }
+}
+
 export class IntegerLiteral implements Expression {
     token: Token = new Token()
     value: number = 0
@@ -177,6 +196,33 @@ export class BooleanExpression implements Expression {
     }
     asString() {
         return this.token.Literal
+    }
+}
+
+export class IfExpression implements Expression {
+    token: Token = new Token()
+    condition: Expression | null = null
+    consequence: BlockStatement | null = null
+    alternative: BlockStatement | null = null
+
+    expressionNode() { }
+    tokenLiteral(): string {
+        return this.token.Literal
+    }
+    asString() {
+        let out = ''
+
+        out += 'if'
+        out += this.condition?.asString()
+        out += ' '
+        out += this.consequence?.asString()
+
+        if (this.alternative != null) {
+            out += 'else '
+            out += this.alternative?.asString()
+        }
+
+        return out
     }
 }
 
