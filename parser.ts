@@ -165,6 +165,20 @@ export class Parser {
         }
     }
 
+    private parseiGroupedLiteral(parser: Parser) {
+        return () => {
+            parser.nextToken()
+
+            const exp = parser.parseExpression(Precedence.LOWEST)
+
+            if (!parser.expectPeek(Token.RPAREN)) {
+                return null
+            }
+
+            return exp
+        }
+    }
+
     getErrors() {
         return this.errors
     }
@@ -186,6 +200,7 @@ export class Parser {
         this.registerPrefixFunc(Token.MINUS, this.parsePrefixExpression(this))
         this.registerPrefixFunc(Token.TRUE, this.parseiBooleanLiteral(this))
         this.registerPrefixFunc(Token.FALSE, this.parseiBooleanLiteral(this))
+        this.registerPrefixFunc(Token.LPAREN, this.parseiGroupedLiteral(this))
 
         this.registerInfixFunc(Token.EQ, this.parseInfixExpression(this))
         this.registerInfixFunc(Token.NOT_EQ, this.parseInfixExpression(this))
