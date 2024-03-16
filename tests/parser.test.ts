@@ -52,6 +52,39 @@ function testBoolLiteral(il: Expression | null, value: boolean) {
     expect(il.tokenLiteral()).toBe(value)
 }
 
+function testInfixExpression(exp: Expression | null, eLExp: string | number | boolean, eOp: string | number | boolean, eRExp: string | number | boolean) {
+    const isIdent = is<InfixExpression>(exp, () => 'expression' in (exp ?? {}))
+
+    expect(exp).toBeInstanceOf(InfixExpression)
+    if (isIdent) {
+        switch (typeof eLExp) {
+            case 'number':
+                testIntLiteral(exp.left, eLExp)
+                break
+            case 'boolean':
+                testBoolLiteral(exp.left, eLExp)
+                break
+            case 'string':
+                expect(exp.left).toBe(eLExp)
+                break
+        }
+
+        switch (typeof eRExp) {
+            case 'number':
+                testIntLiteral(exp.right, eRExp)
+                break
+            case 'boolean':
+                testBoolLiteral(exp.right, eRExp)
+                break
+            case 'string':
+                expect(exp.right).toBe(eRExp)
+                break
+        }
+
+        expect(exp.operator).toBe(eOp)
+    }
+}
+
 describe('Parser', () => {
     test('Let statements', () => {
         const input = `
@@ -284,30 +317,7 @@ describe('Parser', () => {
 
             if (isExp) {
                 const exp = stmt.expression
-                const isIdent = is<InfixExpression>(exp, () => 'expression' in (exp ?? {}))
-
-                expect(stmt.expression).toBeInstanceOf(InfixExpression)
-                if (isIdent) {
-                    switch (typeof tt.left) {
-                        case 'number':
-                            testIntLiteral(exp.left, tt.left)
-                            break
-                        case 'boolean':
-                            testBoolLiteral(exp.left, tt.left)
-                            break
-                    }
-
-                    switch (typeof tt.right) {
-                        case 'number':
-                            testIntLiteral(exp.right, tt.right)
-                            break
-                        case 'boolean':
-                            testBoolLiteral(exp.right, tt.right)
-                            break
-                    }
-
-                    expect(exp.operator).toBe(tt.operator)
-                }
+                testInfixExpression(exp, tt.left, tt.operator, tt.right)
             }
         }
     })
