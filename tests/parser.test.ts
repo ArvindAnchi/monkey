@@ -450,5 +450,57 @@ describe('Parser', () => {
             }
         }
     })
+
+    test('Func literal', () => {
+        const input = 'fn(x, y) { x+y; }'
+
+        const lexer = new Lexer(input)
+        const parser = new Parser(lexer)
+
+        const program = parser.parseProgram()
+
+        checkParserErrors(parser)
+
+        expect(program).not.toBeNull()
+        expect(program.statements.length).toBe(1)
+
+        const stmt = program.statements[0]
+        const isExp = is<ast.ExpressionStatement>(stmt, () => 'expression' in stmt)
+
+        expect(isExp).toBeTruthy()
+        expect(stmt).toBeInstanceOf(ast.ExpressionStatement)
+
+        if (isExp) {
+            const exp = stmt.expression
+            const isIfExp = is<ast.FunctionLiteral>(exp, () => 'parameters' in (exp ?? {}))
+
+            expect(stmt.expression).toBeInstanceOf(ast.FunctionLiteral)
+
+            if (isIfExp) {
+                expect(exp.params).toHaveLength(2)
+
+                const isParam1Ident = is<ast.Identifier>(exp.params[0], () => 'expression' in (exp ?? {}))
+                const isParam2Ident = is<ast.Identifier>(exp.params[1], () => 'expression' in (exp ?? {}))
+
+                expect(exp.params[0]).toBeInstanceOf(ast.Identifier)
+                expect(exp.params[1]).toBeInstanceOf(ast.Identifier)
+
+                if (isParam1Ident) { expect(exp.params[0]).toBe('x') }
+                if (isParam2Ident) { expect(exp.params[1]).toBe('y') }
+
+                expect(exp.body?.statements).toHaveLength(1)
+
+                const stmt = exp.body?.statements[0]
+                const isExp = is<ast.ExpressionStatement>(stmt, () => 'expression' in (stmt ?? {}))
+
+                expect(isExp).toBeTruthy()
+                expect(stmt).toBeInstanceOf(ast.ExpressionStatement)
+
+                if (isExp) {
+                    testInfixExpression(stmt.expression, 'x', '+', 'y')
+                }
+            }
+        }
+    })
 })
 
