@@ -121,9 +121,9 @@ export class BlockStatement implements Statement {
     asString() {
         let out = ''
 
-        out += this.tokenLiteral() + ' '
-        out += this.value?.asString()
-        out += ';'
+        for (const s of this.statements) {
+            out += s.asString()
+        }
 
         return out
     }
