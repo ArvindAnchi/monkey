@@ -226,3 +226,25 @@ export class IfExpression implements Expression {
     }
 }
 
+export class FunctionLiteral implements Expression {
+    token: Token = new Token()
+    params: Identifier[] = []
+    body: BlockStatement | null = null
+
+    expressionNode() { }
+    tokenLiteral(): string {
+        return this.token.Literal
+    }
+    asString() {
+        let out = ''
+
+        out += this.tokenLiteral()
+        out += '('
+        out += this.params.map(p => p.asString()).join(', ')
+        out += ')'
+        out += this.body?.asString()
+
+        return out
+    }
+}
+
