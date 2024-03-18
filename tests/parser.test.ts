@@ -4,8 +4,8 @@ import { Lexer } from '../lexer'
 import { Parser } from '../parser'
 import * as ast from '../ast'
 
-function is<T>(obj: any, checker: () => boolean): obj is T {
-    return checker()
+function is<T>(obj: any, param: string): obj is T {
+    return param in obj
 }
 
 function checkParserErrors(p: Parser) {
@@ -24,65 +24,58 @@ function checkParserErrors(p: Parser) {
 
 function testIntLiteral(il: ast.Expression | null, value: number) {
     expect(il).toBeTruthy()
-    if (il == null) { return }
 
-    if (!is<ast.IntegerLiteral>(il, () => 'number' in il)) { throw new Error(`Expected IntLiteral, got ${typeof il}`) }
+    if (il == null) { return }
+    if (!is<ast.IntegerLiteral>(il, 'value')) {
+        throw new Error(`Expected IntegerLiteral, got ${il.constructor.name}`)
+    }
 
     expect(il.value).toBe(value)
-    expect(il.tokenLiteral()).toBe(value)
+    expect(il.tokenLiteral()).toBe(value.toString())
 }
 
 function testBoolLiteral(il: ast.Expression | null, value: boolean) {
     expect(il).toBeTruthy()
-    if (il == null) { return }
 
-    if (!is<ast.BooleanExpression>(il, () => 'number' in il)) { throw new Error(`Expected IntLiteral, got ${typeof il}`) }
+    if (il == null) { return }
+    if (!is<ast.BooleanExpression>(il, 'value')) {
+        throw new Error(`Expected BooleanExpression, got ${il.constructor.name}`)
+    }
 
     expect(il.value).toBe(value)
-    expect(il.tokenLiteral()).toBe(value)
+    expect(il.tokenLiteral()).toBe(String(value))
 }
 
 function testIdent(il: ast.Expression | null, value: string) {
     expect(il).toBeTruthy()
-    if (il == null) { return }
 
-    if (!is<ast.Identifier>(il, () => 'value' in (il ?? {}))) { throw new Error(`Expected Identifier, got ${typeof il}`) }
+    if (il == null) { return }
+    if (!is<ast.Identifier>(il, 'value')) {
+        throw new Error(`Expected Identifier, got ${il.constructor.name}`)
+    }
 
     expect(il.value).toBe(value)
     expect(il.tokenLiteral()).toBe(value)
 }
 
 function testInfixExpression(exp: ast.Expression | null, eLExp: string | number | boolean, eOp: string | number | boolean, eRExp: string | number | boolean) {
-    const isIdent = is<ast.InfixExpression>(exp, () => 'expression' in (exp ?? {}))
-
-    expect(exp).toBeInstanceOf(ast.InfixExpression)
-    if (isIdent) {
-        switch (typeof eLExp) {
-            case 'number':
-                testIntLiteral(exp.left, eLExp)
-                break
-            case 'boolean':
-                testBoolLiteral(exp.left, eLExp)
-                break
-            case 'string':
-                expect(exp.left).toBe(eLExp)
-                break
-        }
-
-        switch (typeof eRExp) {
-            case 'number':
-                testIntLiteral(exp.right, eRExp)
-                break
-            case 'boolean':
-                testBoolLiteral(exp.right, eRExp)
-                break
-            case 'string':
-                expect(exp.right).toBe(eRExp)
-                break
-        }
-
-        expect(exp.operator).toBe(eOp)
+    if (!is<ast.InfixExpression>(exp, 'operator')) {
+        throw new Error(`Expected InfixExpression, got ${exp?.constructor.name}`)
     }
+
+    switch (typeof eLExp) {
+        case 'number': testIntLiteral(exp.left, eLExp); break
+        case 'boolean': testBoolLiteral(exp.left, eLExp); break
+        case 'string': testIdent(exp.left, eLExp); break
+    }
+
+    switch (typeof eRExp) {
+        case 'number': testIntLiteral(exp.right, eRExp); break
+        case 'boolean': testBoolLiteral(exp.right, eRExp); break
+        case 'string': testIdent(exp.right, eRExp); break
+    }
+
+    expect(exp.operator).toBe(eOp)
 }
 
 describe('Parser', () => {
@@ -92,6 +85,7 @@ describe('Parser', () => {
             let y = 10;
             let foobar = 838383;
         `
+
         const l = new Lexer(input)
         const p = new Parser(l)
 
@@ -104,21 +98,20 @@ describe('Parser', () => {
         ]
 
         checkParserErrors(p)
+
         expect(program).not.toBeNull()
         expect(program.statements.length).toBe(tests.length)
 
         for (let i = 0; i < program.statements.length; i++) {
             const stmt = program.statements[i]
-            const isLet = is<ast.LetStatement>(stmt, () => 'name' in stmt)
 
-            expect(isLet).toBeTruthy()
-            expect(stmt).toBeInstanceOf(ast.LetStatement)
-            expect(stmt.tokenLiteral()).toBe('let')
-
-            if (isLet) {
-                expect(stmt.name?.value).toBe(tests[i].eIdent)
-                expect(stmt.name?.tokenLiteral()).toBe(tests[i].eIdent)
+            if (!is<ast.LetStatement>(stmt, 'name')) {
+                throw new Error(`Expected LetStatement, got ${stmt?.constructor.name}`)
             }
+
+            expect(stmt.tokenLiteral()).toBe('let')
+            expect(stmt.name?.value).toBe(tests[i].eIdent)
+            expect(stmt.name?.tokenLiteral()).toBe(tests[i].eIdent)
         }
     })
 
@@ -128,6 +121,7 @@ describe('Parser', () => {
             return 10;
             return 993322;
         `
+
         const l = new Lexer(input)
         const p = new Parser(l)
 
@@ -139,10 +133,11 @@ describe('Parser', () => {
 
         for (let i = 0; i < program.statements.length; i++) {
             const stmt = program.statements[i]
-            const isRet = is<ast.ReturnStatement>(stmt, () => 'value' in stmt)
 
-            expect(isRet).toBeTruthy()
-            expect(stmt).toBeInstanceOf(ast.ReturnStatement)
+            if (!is<ast.ReturnStatement>(stmt, 'value')) {
+                throw new Error(`Expected ReturnStatement, got ${stmt?.constructor.name}`)
+            }
+
             expect(stmt.tokenLiteral()).toBe('return')
         }
     })
@@ -159,19 +154,15 @@ describe('Parser', () => {
         expect(program).not.toBeNull()
         expect(program.statements.length).toBe(1)
 
-        for (let i = 0; i < program.statements.length; i++) {
-            const stmt = program.statements[i]
-            const isExp = is<ast.ExpressionStatement>(stmt, () => 'expression' in stmt)
+        const stmt = program.statements[0]
 
-            expect(isExp).toBeTruthy()
-            expect(stmt).toBeInstanceOf(ast.ExpressionStatement)
-            expect(stmt.tokenLiteral()).toBe('foobar')
-
-            if (isExp) {
-                const exp = stmt.expression
-                testIdent(exp, 'foobar')
-            }
+        if (!is<ast.ExpressionStatement>(stmt, 'expression')) {
+            throw new Error(`Expected ExpressionStatement, got ${stmt?.constructor.name}`)
         }
+
+        expect(stmt.tokenLiteral()).toBe('foobar')
+
+        testIdent(stmt.expression, 'foobar')
     })
 
     test('Int literals', () => {
@@ -186,24 +177,13 @@ describe('Parser', () => {
         expect(program).not.toBeNull()
         expect(program.statements.length).toBe(1)
 
-        for (let i = 0; i < program.statements.length; i++) {
-            const stmt = program.statements[i]
-            const isExp = is<ast.ExpressionStatement>(stmt, () => 'expression' in stmt)
+        const stmt = program.statements[0]
 
-            expect(isExp).toBeTruthy()
-            expect(stmt).toBeInstanceOf(ast.ExpressionStatement)
-            expect(stmt.tokenLiteral()).toBe('5')
-
-            if (isExp) {
-                const exp = stmt.expression
-                const isIdent = is<ast.IntegerLiteral>(exp, () => 'expression' in (exp ?? {}))
-
-                expect(stmt.expression).toBeInstanceOf(ast.IntegerLiteral)
-                if (isIdent) {
-                    expect(exp.value).toBe(5)
-                }
-            }
+        if (!is<ast.ExpressionStatement>(stmt, 'expression')) {
+            throw new Error(`Expected ExpressionStatement, got ${stmt?.constructor.name}`)
         }
+
+        testIntLiteral(stmt.expression, 5)
     })
 
     test('Boolean literals', () => {
@@ -218,24 +198,13 @@ describe('Parser', () => {
         expect(program).not.toBeNull()
         expect(program.statements.length).toBe(1)
 
-        for (let i = 0; i < program.statements.length; i++) {
-            const stmt = program.statements[i]
-            const isExp = is<ast.ExpressionStatement>(stmt, () => 'expression' in stmt)
+        const stmt = program.statements[0]
 
-            expect(isExp).toBeTruthy()
-            expect(stmt).toBeInstanceOf(ast.ExpressionStatement)
-            expect(stmt.tokenLiteral()).toBe('true')
-
-            if (isExp) {
-                const exp = stmt.expression
-                const isIdent = is<ast.BooleanExpression>(exp, () => 'expression' in (exp ?? {}))
-
-                expect(stmt.expression).toBeInstanceOf(ast.BooleanExpression)
-                if (isIdent) {
-                    expect(exp.value).toBe(true)
-                }
-            }
+        if (!is<ast.ExpressionStatement>(stmt, 'expression')) {
+            throw new Error(`Expected ExpressionStatement, got ${stmt?.constructor.name}`)
         }
+
+        testBoolLiteral(stmt.expression, true)
     })
 
     test('Prefix expressions', () => {
@@ -258,23 +227,22 @@ describe('Parser', () => {
             expect(program.statements.length).toBe(1)
 
             const stmt = program.statements[0]
-            const isExp = is<ast.ExpressionStatement>(stmt, () => 'expression' in stmt)
 
-            expect(isExp).toBeTruthy()
-            expect(stmt).toBeInstanceOf(ast.ExpressionStatement)
+            if (!is<ast.ExpressionStatement>(stmt, 'expression')) {
+                throw new Error(`Expected ExpressionStatement, got ${stmt?.constructor.name}`)
+            }
+
             expect(stmt.tokenLiteral()).toBe(tt.operator)
 
-            if (isExp) {
-                const exp = stmt.expression
-                const isIdent = is<ast.PrefixExpression>(exp, () => 'expression' in (exp ?? {}))
+            const exp = stmt.expression
 
-                expect(stmt.expression).toBeInstanceOf(ast.PrefixExpression)
-                if (isIdent) {
-                    expect(exp.operator).toBe(tt.operator)
-                    if (tt.intValue != null) testIntLiteral(exp.right, tt.intValue)
-                    if (tt.boolValue != null) testBoolLiteral(exp.right, tt.boolValue)
-                }
+            if (!is<ast.PrefixExpression>(exp, 'operator')) {
+                throw new Error(`Expected PrefixExpression, got ${stmt?.constructor.name}`)
             }
+
+            expect(exp.operator).toBe(tt.operator)
+            if (tt.intValue != null) testIntLiteral(exp.right, tt.intValue)
+            if (tt.boolValue != null) testBoolLiteral(exp.right, tt.boolValue)
         }
     })
 
@@ -305,15 +273,12 @@ describe('Parser', () => {
             expect(program.statements.length).toBe(1)
 
             const stmt = program.statements[0]
-            const isExp = is<ast.ExpressionStatement>(stmt, () => 'expression' in stmt)
 
-            expect(isExp).toBeTruthy()
-            expect(stmt).toBeInstanceOf(ast.ExpressionStatement)
-
-            if (isExp) {
-                const exp = stmt.expression
-                testInfixExpression(exp, tt.left, tt.operator, tt.right)
+            if (!is<ast.ExpressionStatement>(stmt, 'expression')) {
+                throw new Error(`Expected ExpressionStatement, got ${stmt?.constructor.name}`)
             }
+
+            testInfixExpression(stmt.expression, tt.left, tt.operator, tt.right)
         }
     })
 
@@ -369,36 +334,32 @@ describe('Parser', () => {
         expect(program.statements.length).toBe(1)
 
         const stmt = program.statements[0]
-        const isExp = is<ast.ExpressionStatement>(stmt, () => 'expression' in stmt)
 
-        expect(isExp).toBeTruthy()
-        expect(stmt).toBeInstanceOf(ast.ExpressionStatement)
-
-        if (isExp) {
-            const exp = stmt.expression
-            const isIfExp = is<ast.IfExpression>(exp, () => 'condition' in (exp ?? {}))
-
-            expect(stmt.expression).toBeInstanceOf(ast.IfExpression)
-
-            if (isIfExp) {
-                testInfixExpression(exp.condition, 'x', '<', 'y')
-                expect(exp.consequence?.statements.length).toBe(1)
-
-                const conExp = exp.consequence?.statements[0]
-                const isConExp = is<ast.ExpressionStatement>(conExp, () => 'expression' in (exp ?? {}))
-
-                expect(conExp).toBeInstanceOf(ast.ExpressionStatement)
-
-                if (isConExp) {
-                    const isIdent = is<ast.Identifier>(conExp, () => 'expression' in (conExp ?? {}))
-
-                    expect(stmt.expression).toBeInstanceOf(ast.Identifier)
-                    if (isIdent) { expect(conExp.value).toBe('x') }
-                }
-
-                expect(exp.alternative?.statements.length).toBeFalsy()
-            }
+        if (!is<ast.ExpressionStatement>(stmt, 'expression')) {
+            throw new Error(`Expected ExpressionStatement, got ${stmt?.constructor.name}`)
         }
+
+        const exp = stmt.expression
+
+        if (!is<ast.IfExpression>(exp, 'condition')) {
+            throw new Error(`Expected IfExpression, got ${stmt?.constructor.name}`)
+        }
+
+        const conExp = exp.consequence?.statements[0]
+
+        if (!is<ast.ExpressionStatement>(conExp, 'expression')) {
+            throw new Error(`Expected ExpressionStatement, got ${stmt?.constructor.name}`)
+        }
+
+        if (!is<ast.Identifier>(conExp, 'expression')) {
+            throw new Error(`Expected Identifier, got ${stmt?.constructor.name}`)
+        }
+
+        testInfixExpression(exp.condition, 'x', '<', 'y')
+
+        expect(exp.consequence?.statements.length).toBe(1)
+        expect(conExp.value).toBe('x')
+        expect(exp.alternative?.statements.length).toBeFalsy()
     })
 
     test('If else expression', () => {
@@ -415,45 +376,37 @@ describe('Parser', () => {
         expect(program.statements.length).toBe(1)
 
         const stmt = program.statements[0]
-        const isExp = is<ast.ExpressionStatement>(stmt, () => 'expression' in stmt)
 
-        expect(isExp).toBeTruthy()
-        expect(stmt).toBeInstanceOf(ast.ExpressionStatement)
-
-        if (isExp) {
-            const exp = stmt.expression
-            const isIfExp = is<ast.IfExpression>(exp, () => 'condition' in (exp ?? {}))
-
-            expect(stmt.expression).toBeInstanceOf(ast.IfExpression)
-
-            if (isIfExp) {
-                testInfixExpression(exp.condition, 'x', '<', 'y')
-                expect(exp.consequence?.statements.length).toBe(1)
-
-                const conExp = exp.consequence?.statements[0]
-                const altExp = exp.alternative?.statements[0]
-
-                const isConExp = is<ast.ExpressionStatement>(conExp, () => 'expression' in (exp ?? {}))
-                const isAltExp = is<ast.ExpressionStatement>(altExp, () => 'expression' in (exp ?? {}))
-
-                expect(conExp).toBeInstanceOf(ast.ExpressionStatement)
-                expect(altExp).toBeInstanceOf(ast.ExpressionStatement)
-
-                if (isConExp) {
-                    const isIdent = is<ast.Identifier>(conExp, () => 'expression' in (conExp ?? {}))
-
-                    expect(stmt.expression).toBeInstanceOf(ast.Identifier)
-                    if (isIdent) { expect(conExp.value).toBe('x') }
-                }
-
-                if (isAltExp) {
-                    const isIdent = is<ast.Identifier>(altExp, () => 'expression' in (altExp ?? {}))
-
-                    expect(stmt.expression).toBeInstanceOf(ast.Identifier)
-                    if (isIdent) { expect(altExp.value).toBe('y') }
-                }
-            }
+        if (!is<ast.ExpressionStatement>(stmt, 'expression')) {
+            throw new Error(`Expected ExpressionStatement, got ${stmt?.constructor.name}`)
         }
+
+        const exp = stmt.expression
+
+        if (!is<ast.IfExpression>(exp, 'condition')) {
+            throw new Error(`Expected IfExpression, got ${stmt?.constructor.name}`)
+        }
+
+        testInfixExpression(exp.condition, 'x', '<', 'y')
+        expect(exp.consequence?.statements.length).toBe(1)
+
+        const conExp = exp.consequence?.statements[0]
+        const altExp = exp.alternative?.statements[0]
+
+        if (!is<ast.ExpressionStatement>(conExp, 'expression')) {
+            throw new Error(`Expected ExpressionStatement, got ${stmt?.constructor.name}`)
+        }
+
+        if (!is<ast.Identifier>(conExp, 'expression')) {
+            throw new Error(`Expected Identifier, got ${stmt?.constructor.name}`)
+        }
+
+        if (!is<ast.Identifier>(altExp, 'expression')) {
+            throw new Error(`Expected Identifier, got ${stmt?.constructor.name}`)
+        }
+
+        expect(conExp.value).toBe('x')
+        expect(altExp.value).toBe('y')
     })
 
     test('Func literal', () => {
@@ -470,42 +423,37 @@ describe('Parser', () => {
         expect(program.statements.length).toBe(1)
 
         const stmt = program.statements[0]
-        const isExp = is<ast.ExpressionStatement>(stmt, () => 'expression' in stmt)
 
-        expect(isExp).toBeTruthy()
-        expect(stmt).toBeInstanceOf(ast.ExpressionStatement)
-
-        if (isExp) {
-            const exp = stmt.expression
-            const isIfExp = is<ast.FunctionLiteral>(exp, () => 'parameters' in (exp ?? {}))
-
-            expect(stmt.expression).toBeInstanceOf(ast.FunctionLiteral)
-
-            if (isIfExp) {
-                expect(exp.params).toHaveLength(2)
-
-                const isParam1Ident = is<ast.Identifier>(exp.params[0], () => 'expression' in (exp ?? {}))
-                const isParam2Ident = is<ast.Identifier>(exp.params[1], () => 'expression' in (exp ?? {}))
-
-                expect(exp.params[0]).toBeInstanceOf(ast.Identifier)
-                expect(exp.params[1]).toBeInstanceOf(ast.Identifier)
-
-                if (isParam1Ident) { expect(exp.params[0]).toBe('x') }
-                if (isParam2Ident) { expect(exp.params[1]).toBe('y') }
-
-                expect(exp.body?.statements).toHaveLength(1)
-
-                const stmt = exp.body?.statements[0]
-                const isExp = is<ast.ExpressionStatement>(stmt, () => 'expression' in (stmt ?? {}))
-
-                expect(isExp).toBeTruthy()
-                expect(stmt).toBeInstanceOf(ast.ExpressionStatement)
-
-                if (isExp) {
-                    testInfixExpression(stmt.expression, 'x', '+', 'y')
-                }
-            }
+        if (!is<ast.ExpressionStatement>(stmt, 'expression')) {
+            throw new Error(`Expected ExpressionStatement, got ${stmt?.constructor.name}`)
         }
+
+        const exp = stmt.expression
+
+        if (!is<ast.FunctionLiteral>(exp, 'parameters')) {
+            throw new Error(`Expected FunctionLiteral, got ${stmt?.constructor.name}`)
+        }
+
+        const bodyStmt = exp.body?.statements[0]
+
+        if (!is<ast.ExpressionStatement>(bodyStmt, 'expression')) {
+            throw new Error(`Expected ExpressionStatement, got ${bodyStmt?.constructor.name}`)
+        }
+
+        if (!is<ast.Identifier>(exp.params[0], 'expression')) {
+            throw new Error(`Expected Identifier, got ${stmt?.constructor.name}`)
+        }
+
+        if (!is<ast.Identifier>(exp.params[1], 'expression')) {
+            throw new Error(`Expected Identifier, got ${stmt?.constructor.name}`)
+        }
+
+        expect(exp.params).toHaveLength(2)
+        expect(exp.params[0]).toBe('x')
+        expect(exp.params[1]).toBe('y')
+        expect(exp.body?.statements).toHaveLength(1)
+
+        testInfixExpression(bodyStmt.expression, 'x', '+', 'y')
     })
 
     test('Func params parser', () => {
@@ -527,19 +475,21 @@ describe('Parser', () => {
             expect(program.statements.length).toBe(1)
 
             const stmt = program.statements[0]
-            const isExp = is<ast.ExpressionStatement>(stmt, () => 'expression' in stmt)
 
-            if (isExp) {
-                const func = stmt.expression
-                const isFunc = is<ast.FunctionLiteral>(func, () => 'params' in (func ?? {}))
+            if (!is<ast.ExpressionStatement>(stmt, 'expression')) {
+                throw new Error(`Expected ExpressionStatement, got ${stmt?.constructor.name}`)
+            }
 
-                if (isFunc) {
-                    expect(func.params).toHaveLength(tt.expectedParams.length)
+            const func = stmt.expression
 
-                    for (let i = 0; i < tt.expectedParams.length; i++) {
-                        testIdent(func.params[i], tt.expectedParams[i])
-                    }
-                }
+            if (!is<ast.FunctionLiteral>(func, 'params')) {
+                throw new Error(`Expected FunctionLiteral, got ${stmt?.constructor.name}`)
+            }
+
+            expect(func.params).toHaveLength(tt.expectedParams.length)
+
+            for (let i = 0; i < tt.expectedParams.length; i++) {
+                testIdent(func.params[i], tt.expectedParams[i])
             }
         }
     })

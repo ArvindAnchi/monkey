@@ -24,12 +24,12 @@ describe('AST', () => {
         const exp = new Identifier()
         const isIdent = is<Identifier>(exp, () => 'value' in (exp ?? {}))
 
-        if (isIdent) {
-            exp.value = 'anotherVar'
-            exp.token = new Token()
-            exp.token.Type = Token.IDENT
-            exp.token.Literal = 'anotherVar'
-        }
+        if (!isIdent) { throw (`Expected 'Identifier' got '${typeof exp}'`) }
+
+        exp.value = 'anotherVar'
+        exp.token = new Token()
+        exp.token.Type = Token.IDENT
+        exp.token.Literal = 'anotherVar'
 
         letStmt.value = exp
 
