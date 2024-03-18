@@ -507,5 +507,41 @@ describe('Parser', () => {
             }
         }
     })
+
+    test('Func params parser', () => {
+        const tests = [
+            { input: "fn() {};", expectedParams: [] },
+            { input: "fn(x) {};", expectedParams: ["x"] },
+            { input: "fn(x, y, z) {};", expectedParams: ["x", "y", "z"] },
+        ]
+
+        for (const tt of tests) {
+            const lexer = new Lexer(tt.input)
+            const parser = new Parser(lexer)
+
+            const program = parser.parseProgram()
+
+            checkParserErrors(parser)
+
+            expect(program).not.toBeNull()
+            expect(program.statements.length).toBe(1)
+
+            const stmt = program.statements[0]
+            const isExp = is<ast.ExpressionStatement>(stmt, () => 'expression' in stmt)
+
+            if (isExp) {
+                const func = stmt.expression
+                const isFunc = is<ast.FunctionLiteral>(func, () => 'params' in (func ?? {}))
+
+                if (isFunc) {
+                    expect(func.params).toHaveLength(tt.expectedParams.length)
+
+                    for (let i = 0; i < tt.expectedParams.length; i++) {
+                        testIdent(func.params[i], tt.expectedParams[i])
+                    }
+                }
+            }
+        }
+    })
 })
 
