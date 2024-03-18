@@ -42,6 +42,16 @@ function testBoolLiteral(il: ast.Expression | null, value: boolean) {
     expect(il.tokenLiteral()).toBe(value)
 }
 
+function testIdent(il: ast.Expression | null, value: string) {
+    expect(il).toBeTruthy()
+    if (il == null) { return }
+
+    if (!is<ast.Identifier>(il, () => 'value' in (il ?? {}))) { throw new Error(`Expected Identifier, got ${typeof il}`) }
+
+    expect(il.value).toBe(value)
+    expect(il.tokenLiteral()).toBe(value)
+}
+
 function testInfixExpression(exp: ast.Expression | null, eLExp: string | number | boolean, eOp: string | number | boolean, eRExp: string | number | boolean) {
     const isIdent = is<ast.InfixExpression>(exp, () => 'expression' in (exp ?? {}))
 
@@ -159,12 +169,7 @@ describe('Parser', () => {
 
             if (isExp) {
                 const exp = stmt.expression
-                const isIdent = is<ast.Identifier>(exp, () => 'expression' in (exp ?? {}))
-
-                expect(stmt.expression).toBeInstanceOf(ast.Identifier)
-                if (isIdent) {
-                    expect(exp.value).toBe('foobar')
-                }
+                testIdent(exp, 'foobar')
             }
         }
     })
