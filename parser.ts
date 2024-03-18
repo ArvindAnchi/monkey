@@ -1,9 +1,9 @@
-import { BlockStatement, BooleanExpression, Expression, ExpressionStatement, Identifier, IfExpression, InfixExpression, IntegerLiteral, LetStatement, PrefixExpression, Program, ReturnStatement, Statement } from './ast'
+import * as ast from './ast'
 import { Lexer } from './lexer'
 import { Token, TokenType } from './token'
 
-type prefixParseFunc = () => Expression | null
-type infixParseFunc = (ex: Expression) => Expression | null
+type prefixParseFunc = () => ast.Expression | null
+type infixParseFunc = (ex: ast.Expression) => ast.Expression | null
 
 enum Precedence {
     LOWEST,
@@ -94,7 +94,7 @@ export class Parser {
 
     private parseIdentifier(parser: Parser) {
         return () => {
-            const ident = new Identifier()
+            const ident = new ast.Identifier()
 
             ident.token = parser.curToken
             ident.value = parser.curToken.Literal
@@ -112,7 +112,7 @@ export class Parser {
                 return null
             }
 
-            const lit = new IntegerLiteral()
+            const lit = new ast.IntegerLiteral()
 
             lit.token = parser.curToken
             lit.value = val
@@ -124,7 +124,7 @@ export class Parser {
     private parseiBooleanLiteral(parser: Parser) {
         return () => {
             const val = Boolean(parser.curToken.Literal)
-            const lit = new BooleanExpression()
+            const lit = new ast.BooleanExpression()
 
             lit.token = parser.curToken
             lit.value = val
@@ -135,7 +135,7 @@ export class Parser {
 
     private parsePrefixExpression(parser: Parser) {
         return () => {
-            const expr = new PrefixExpression()
+            const expr = new ast.PrefixExpression()
 
             expr.token = parser.curToken
             expr.operator = parser.curToken.Literal
@@ -149,8 +149,8 @@ export class Parser {
     }
 
     private parseInfixExpression(parser: Parser) {
-        return (left: Expression) => {
-            const expr = new InfixExpression()
+        return (left: ast.Expression) => {
+            const expr = new ast.InfixExpression()
 
             expr.token = parser.curToken
             expr.operator = parser.curToken.Literal
@@ -181,7 +181,7 @@ export class Parser {
 
     private parseIfExpression(parser: Parser) {
         return () => {
-            const expr = new IfExpression()
+            const expr = new ast.IfExpression()
 
             expr.token = parser.curToken
 
@@ -221,7 +221,7 @@ export class Parser {
     }
 
     parseProgram() {
-        const program = new Program()
+        const program = new ast.Program()
 
         this.registerPrefixFunc(Token.IDENT, this.parseIdentifier(this))
         this.registerPrefixFunc(Token.INT, this.parseIntegerLiteral(this))
@@ -254,7 +254,7 @@ export class Parser {
         return program
     }
 
-    parseStatement(): Statement | null {
+    parseStatement(): ast.Statement | null {
         switch (this.curToken.Type) {
             case Token.LET:
                 return this.parseLetStatement()
@@ -265,14 +265,14 @@ export class Parser {
         }
     }
 
-    parseLetStatement(): LetStatement | null {
-        const stmt = new LetStatement()
+    parseLetStatement(): ast.LetStatement | null {
+        const stmt = new ast.LetStatement()
 
         stmt.token = this.curToken
 
         if (!this.expectPeek(Token.IDENT)) { return null }
 
-        stmt.name = new Identifier()
+        stmt.name = new ast.Identifier()
 
         stmt.name.token = this.curToken
         stmt.name.value = this.curToken.Literal
@@ -286,8 +286,8 @@ export class Parser {
         return stmt
     }
 
-    parseReturnStatement(): ReturnStatement | null {
-        const stmt = new ReturnStatement()
+    parseReturnStatement(): ast.ReturnStatement | null {
+        const stmt = new ast.ReturnStatement()
 
         stmt.token = this.curToken
 
@@ -299,7 +299,7 @@ export class Parser {
     }
 
     parseExpressionStatement() {
-        const stmt = new ExpressionStatement()
+        const stmt = new ast.ExpressionStatement()
 
         stmt.token = this.curToken
         stmt.expression = this.parseExpression(Precedence.LOWEST)
@@ -335,7 +335,7 @@ export class Parser {
     }
 
     parseBlockStatement() {
-        const block = new BlockStatement()
+        const block = new ast.BlockStatement()
 
         block.token = this.curToken
         block.statements = []
