@@ -82,20 +82,20 @@ describe('Parser', () => {
     test('Let statements', () => {
         const input = `
             let x = 5;
-            let y = 10;
-            let foobar = 838383;
+            let y = true;
+            let foobar = y;
         `
+
+        const tests = [
+            { eIdent: 'x', eValue: 5 },
+            { eIdent: 'y', eValue: true },
+            { eIdent: 'foobar', eValue: 'y' },
+        ]
 
         const l = new Lexer(input)
         const p = new Parser(l)
 
         const program = p.parseProgram()
-
-        const tests = [
-            { eIdent: 'x' },
-            { eIdent: 'y' },
-            { eIdent: 'foobar' },
-        ]
 
         checkParserErrors(p)
 
@@ -112,15 +112,29 @@ describe('Parser', () => {
             expect(stmt.tokenLiteral()).toBe('let')
             expect(stmt.name?.value).toBe(tests[i].eIdent)
             expect(stmt.name?.tokenLiteral()).toBe(tests[i].eIdent)
+
+            const eVal = tests[i].eValue
+
+            if (typeof eVal === 'string') { testIdent(stmt.value, eVal); return }
+            if (typeof eVal === 'boolean') { testBoolLiteral(stmt.value, eVal); return }
+            if (typeof eVal === 'number') { testIntLiteral(stmt.value, eVal); return }
+
+            throw new Error('Unreachable')
         }
     })
 
     test('Return statements', () => {
         const input = `
             return 5;
-            return 10;
-            return 993322;
+            return true;
+            return y;
         `
+
+        const tests = [
+            { eValue: 5 },
+            { eValue: true },
+            { eValue: 'y' },
+        ]
 
         const l = new Lexer(input)
         const p = new Parser(l)
@@ -139,6 +153,14 @@ describe('Parser', () => {
             }
 
             expect(stmt.tokenLiteral()).toBe('return')
+
+            const eVal = tests[i].eValue
+
+            if (typeof eVal === 'string') { testIdent(stmt.value, eVal); return }
+            if (typeof eVal === 'boolean') { testBoolLiteral(stmt.value, eVal); return }
+            if (typeof eVal === 'number') { testIntLiteral(stmt.value, eVal); return }
+
+            throw new Error('Unreachable')
         }
     })
 

@@ -390,7 +390,11 @@ export class Parser {
 
         if (!this.expectPeek(Token.ASSIGN)) { return null }
 
-        while (!this.curTokenIs(Token.SEMICOLON)) {
+        this.nextToken()
+
+        stmt.value = this.parseExpression(Precedence.LOWEST)
+
+        if (this.peekTokenIs(Token.SEMICOLON)) {
             this.nextToken()
         }
 
@@ -402,7 +406,11 @@ export class Parser {
 
         stmt.token = this.curToken
 
-        while (!this.curTokenIs(Token.SEMICOLON)) {
+        this.nextToken()
+
+        stmt.value = this.parseExpression(Precedence.LOWEST)
+
+        if (this.peekTokenIs(Token.SEMICOLON)) {
             this.nextToken()
         }
 
