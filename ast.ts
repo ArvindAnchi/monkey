@@ -248,3 +248,29 @@ export class FunctionLiteral implements Expression {
     }
 }
 
+export class CallExpression implements Expression {
+    token: Token = new Token()
+    function: Expression | null = null
+    args: (Expression | null)[] | null = []
+
+    expressionNode() { }
+    tokenLiteral(): string {
+        return this.token.Literal
+    }
+    asString() {
+        const params = []
+        let out = ''
+
+        for (const arg of (this.args ?? [])) {
+            params.push(arg?.asString())
+        }
+
+        out += this.function?.asString()
+        out += '('
+        out += params.join(', ')
+        out += ')'
+
+        return out
+    }
+}
+

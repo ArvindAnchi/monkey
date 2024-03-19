@@ -305,6 +305,9 @@ describe('Parser', () => {
             { input: "2 / (5 + 5)", expected: "(2 / (5 + 5))", },
             { input: "-(5 + 5)", expected: "(-(5 + 5))", },
             { input: "!(true == true)", expected: "(!(true == true))", },
+            { input: "a + add(b * c) + d", expected: "((a + add((b * c))) + d)", },
+            { input: "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))", expected: "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))", },
+            { input: "add(a + b + c * d / f + g)", expected: "add((((a + b) + ((c * d) / f)) + g))", },
         ]
 
         for (const tt of tests) {
@@ -488,6 +491,38 @@ describe('Parser', () => {
                 testIdent(func.params[i], tt.expectedParams[i])
             }
         }
+    })
+
+    test('Call expression', () => {
+        const input = 'add(1, 2 * 3, 4 + 5);'
+
+        const lexer = new Lexer(input)
+        const parser = new Parser(lexer)
+
+        const program = parser.parseProgram()
+
+        checkParserErrors(parser)
+
+        expect(program).not.toBeNull()
+        expect(program.statements.length).toBe(1)
+
+        const stmt = program.statements[0]
+
+        if (!is<ast.ExpressionStatement>(stmt, 'expression')) {
+            throw new Error(`Expected ExpressionStatement, got ${stmt?.constructor.name}`)
+        }
+
+        const cExp = stmt.expression
+
+        if (!is<ast.CallExpression>(cExp, 'function')) {
+            throw new Error(`Expected FunctionLiteral, got ${stmt?.constructor.name}`)
+        }
+
+        testIdent(cExp.function, 'add')
+        expect(cExp.args).toHaveLength(3)
+        testIntLiteral(cExp?.args?.[0] ?? null, 1)
+        testInfixExpression(cExp?.args?.[1] ?? null, 2, '*', 3)
+        testInfixExpression(cExp?.args?.[2] ?? null, 4, '+', 5)
     })
 })
 

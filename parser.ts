@@ -24,6 +24,7 @@ const precedences = {
     [Token.MINUS]: Precedence.SUM,
     [Token.SLASH]: Precedence.PRODUCT,
     [Token.ASTERISK]: Precedence.PRODUCT,
+    [Token.LPAREN]: Precedence.CALL,
 }
 
 const prefixParseFuncs: Record<TokenType, prefixParseFunc> = {}
@@ -279,6 +280,43 @@ export class Parser {
         }
     }
 
+    private parseCallExpression(parser: Parser) {
+        return (func: ast.Expression) => {
+            const exp = new ast.CallExpression()
+
+            exp.token = parser.curToken
+            exp.function = func
+            exp.args = parser.parseCallArgs(parser)
+
+            return exp
+        }
+    }
+
+    private parseCallArgs(parser: Parser) {
+        const args: (ast.Expression | null)[] = []
+
+        if (parser.peekTokenIs(Token.RPAREN)) {
+            parser.nextToken()
+            return args
+        }
+
+        parser.nextToken()
+        args.push(parser.parseExpression(Precedence.LOWEST))
+
+        while (parser.peekTokenIs(Token.COMMA)) {
+            parser.nextToken()
+            parser.nextToken()
+
+            args.push(parser.parseExpression(Precedence.LOWEST))
+        }
+
+        if (!parser.expectPeek(Token.RPAREN)) {
+            return null
+        }
+
+        return args
+    }
+
     getErrors() {
         return this.errors
     }
@@ -312,6 +350,7 @@ export class Parser {
         this.registerInfixFunc(Token.MINUS, this.parseInfixExpression(this))
         this.registerInfixFunc(Token.SLASH, this.parseInfixExpression(this))
         this.registerInfixFunc(Token.ASTERISK, this.parseInfixExpression(this))
+        this.registerInfixFunc(Token.LPAREN, this.parseCallExpression(this))
 
         while (this.curToken.Type !== Token.EOF) {
             const stmt = this.parseStatement()
