@@ -49,7 +49,25 @@ export class Parser {
         this.errors = []
     }
 
+    private tokToStr(tok: Token) {
+        let str = ''
+
+        if (tok.Type !== '') { str += ` ${tok.Type}` }
+        if (tok.Literal.toLowerCase() !== tok.Type.toLowerCase()) { str += `('${tok.Literal}')` }
+
+        if (tok.Type === Token.EOF) { str += '\n' }
+
+        return str
+    }
+
     private nextToken() {
+        // process.stdout.write(this.tokToStr(this.peekToken))
+
+        if (this.curToken.Type === Token.EOF) {
+            console.log('ERROR: Reached EOF')
+            process.exit(1)
+        }
+
         this.curToken = this.peekToken
         this.peekToken = this.lex.NextToken()
     }
@@ -123,11 +141,64 @@ export class Parser {
 
     private parseiBooleanLiteral(parser: Parser) {
         return () => {
-            const val = Boolean(parser.curToken.Literal)
+            const val = parser.curToken.Literal === 'true'
             const lit = new ast.BooleanExpression()
 
             lit.token = parser.curToken
             lit.value = val
+
+            return lit
+        }
+    }
+
+    private parseFunctionParams(parser: Parser) {
+        const idents: ast.Identifier[] = []
+
+        if (parser.peekTokenIs(Token.RPAREN)) {
+            parser.nextToken()
+
+            return idents
+        }
+
+        parser.nextToken()
+
+        const ident = new ast.Identifier()
+
+        ident.token = parser.curToken
+        ident.value = parser.curToken.Literal
+
+        idents.push(ident)
+
+        while (parser.peekTokenIs(Token.COMMA)) {
+            parser.nextToken()
+            parser.nextToken()
+
+            const ident = new ast.Identifier()
+
+            ident.token = parser.curToken
+            ident.value = parser.curToken.Literal
+
+            idents.push(ident)
+        }
+
+        if (!parser.expectPeek(Token.RPAREN)) {
+            return idents
+        }
+
+        return idents
+    }
+
+    private parseFunctionLiteral(parser: Parser) {
+        return () => {
+            const lit = new ast.FunctionLiteral()
+
+            if (!parser.expectPeek(Token.LPAREN)) { return null }
+
+            lit.params = parser.parseFunctionParams(parser)
+
+            if (!parser.expectPeek(Token.LBRACE)) { return null }
+
+            lit.body = parser.parseBlockStatement()
 
             return lit
         }
@@ -231,6 +302,7 @@ export class Parser {
         this.registerPrefixFunc(Token.FALSE, this.parseiBooleanLiteral(this))
         this.registerPrefixFunc(Token.LPAREN, this.parseiGroupedLiteral(this))
         this.registerPrefixFunc(Token.IF, this.parseIfExpression(this))
+        this.registerPrefixFunc(Token.FUNCTION, this.parseFunctionLiteral(this))
 
         this.registerInfixFunc(Token.EQ, this.parseInfixExpression(this))
         this.registerInfixFunc(Token.NOT_EQ, this.parseInfixExpression(this))
