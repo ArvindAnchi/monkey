@@ -358,7 +358,7 @@ describe('Parser', () => {
         testInfixExpression(exp.condition, 'x', '<', 'y')
 
         expect(exp.consequence?.statements.length).toBe(1)
-        expect(conExp.value).toBe('x')
+        expect(conExp.expression?.token.Literal).toBe('x')
         expect(exp.alternative?.statements.length).toBeFalsy()
     })
 
@@ -397,16 +397,12 @@ describe('Parser', () => {
             throw new Error(`Expected ExpressionStatement, got ${stmt?.constructor.name}`)
         }
 
-        if (!is<ast.Identifier>(conExp, 'expression')) {
-            throw new Error(`Expected Identifier, got ${stmt?.constructor.name}`)
+        if (!is<ast.ExpressionStatement>(altExp, 'expression')) {
+            throw new Error(`Expected ExpressionStatement, got ${stmt?.constructor.name}`)
         }
 
-        if (!is<ast.Identifier>(altExp, 'expression')) {
-            throw new Error(`Expected Identifier, got ${stmt?.constructor.name}`)
-        }
-
-        expect(conExp.value).toBe('x')
-        expect(altExp.value).toBe('y')
+        expect(conExp.expression?.token.Literal).toBe('x')
+        expect(altExp.expression?.token.Literal).toBe('y')
     })
 
     test('Func literal', () => {
@@ -430,7 +426,7 @@ describe('Parser', () => {
 
         const exp = stmt.expression
 
-        if (!is<ast.FunctionLiteral>(exp, 'parameters')) {
+        if (!is<ast.FunctionLiteral>(exp, 'params')) {
             throw new Error(`Expected FunctionLiteral, got ${stmt?.constructor.name}`)
         }
 
@@ -440,17 +436,17 @@ describe('Parser', () => {
             throw new Error(`Expected ExpressionStatement, got ${bodyStmt?.constructor.name}`)
         }
 
-        if (!is<ast.Identifier>(exp.params[0], 'expression')) {
+        if (!is<ast.Identifier>(exp.params[0], 'value')) {
             throw new Error(`Expected Identifier, got ${stmt?.constructor.name}`)
         }
 
-        if (!is<ast.Identifier>(exp.params[1], 'expression')) {
+        if (!is<ast.Identifier>(exp.params[1], 'value')) {
             throw new Error(`Expected Identifier, got ${stmt?.constructor.name}`)
         }
 
         expect(exp.params).toHaveLength(2)
-        expect(exp.params[0]).toBe('x')
-        expect(exp.params[1]).toBe('y')
+        expect(exp.params[0].value).toBe('x')
+        expect(exp.params[1].value).toBe('y')
         expect(exp.body?.statements).toHaveLength(1)
 
         testInfixExpression(bodyStmt.expression, 'x', '+', 'y')
