@@ -30,6 +30,18 @@ function testIntObject(obj: obj.MObject | null, expected: Number) {
     expect(obj.Value).toBe(expected)
 }
 
+function testBoolObject(obj: obj.MObject | null, expected: boolean) {
+    if (obj == null) {
+        throw new Error("Got 'null' obj")
+    }
+
+    if (!is<obj.Boolean>(obj, 'Value')) {
+        throw new Error(`Expected Boolean, got ${obj.Type()}`)
+    }
+
+    expect(obj.Value).toBe(expected)
+}
+
 describe('Evaluator', () => {
     test('Int expression', () => {
         const tests = [
@@ -40,6 +52,18 @@ describe('Evaluator', () => {
         for (const tt of tests) {
             const evaluated = testEval(tt.input)
             testIntObject(evaluated, tt.expected)
+        }
+    })
+
+    test('Bool expression', () => {
+        const tests = [
+            { input: 'true', expected: true },
+            { input: 'false', expected: false },
+        ]
+
+        for (const tt of tests) {
+            const evaluated = testEval(tt.input)
+            testBoolObject(evaluated, tt.expected)
         }
     })
 })
