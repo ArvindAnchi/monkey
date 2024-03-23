@@ -14,7 +14,29 @@ function evalStatemets(stmts: ast.Statement[]): obj.MObject | null {
     return result
 }
 
-export function Eval(node: ast.Node | null) {
+function evalNotOperatorExpression(right: obj.MObject | null) {
+    switch (right) {
+        case TRUE_BOBJ:
+            return FALSE_BOBJ
+        case FALSE_BOBJ:
+            return TRUE_BOBJ
+        case NULL_OBJ:
+            return TRUE_BOBJ
+        default:
+            return FALSE_BOBJ
+    }
+}
+
+function evalPrefixExpression(operator: string, right: obj.MObject | null): obj.MObject | null {
+    switch (operator) {
+        case '!':
+            return evalNotOperatorExpression(right)
+        default:
+            return null
+    }
+}
+
+export function Eval(node: ast.Node | null): obj.MObject | null {
     if (node instanceof ast.Program) {
         return evalStatemets(node.statements)
     }
@@ -31,6 +53,11 @@ export function Eval(node: ast.Node | null) {
         return node.value
             ? TRUE_BOBJ
             : FALSE_BOBJ
+    }
+
+    if (node instanceof ast.PrefixExpression) {
+        const right = Eval(node.right)
+        return evalPrefixExpression(node.operator, right)
     }
 
     return null

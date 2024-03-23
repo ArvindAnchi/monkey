@@ -66,5 +66,21 @@ describe('Evaluator', () => {
             testBoolObject(evaluated, tt.expected)
         }
     })
+
+    test('Not operator', () => {
+        const tests = [
+            { input: '!true', expected: false },
+            { input: '!false', expected: true },
+            { input: '!5', expected: false },
+            { input: '!!true', expected: true },
+            { input: '!!false', expected: false },
+            { input: '!!5', expected: true },
+        ]
+
+        for (const tt of tests) {
+            const evaluated = testEval(tt.input)
+            testBoolObject(evaluated, tt.expected)
+        }
+    })
 })
 
