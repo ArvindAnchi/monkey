@@ -3,6 +3,7 @@ import { stdin as input, stdout as output } from 'node:process'
 
 import { Lexer } from './lexer'
 import { Parser } from './parser'
+import { Eval } from './evaluator'
 
 const prompt = '>> '
 
@@ -34,7 +35,16 @@ export async function start() {
             continue
         }
 
-        console.log(program.asString())
+        console.log('  Parsed:', program.asString())
+
+        const evaluated = Eval(program)
+
+        if (evaluated == null) {
+            console.log('  Error: Could not evaluate')
+            continue
+        }
+
+        console.log(evaluated.Inspect())
     }
 }
 
