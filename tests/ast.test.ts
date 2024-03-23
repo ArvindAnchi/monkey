@@ -2,8 +2,8 @@ import { describe, test, expect } from 'vitest'
 import { Identifier, LetStatement, Program } from '../ast'
 import { Token } from '../token'
 
-function is<T>(obj: any, checker: () => boolean): obj is T {
-    return checker()
+function is<T>(obj: any, param: string): obj is T {
+    return param in obj
 }
 
 describe('AST', () => {
@@ -22,7 +22,7 @@ describe('AST', () => {
         letStmt.name.token.Literal = 'myVar'
 
         const exp = new Identifier()
-        const isIdent = is<Identifier>(exp, () => 'value' in (exp ?? {}))
+        const isIdent = is<Identifier>(exp, 'value')
 
         if (!isIdent) { throw (`Expected 'Identifier' got '${typeof exp}'`) }
 
