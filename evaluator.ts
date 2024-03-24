@@ -35,6 +35,12 @@ function evalMinusPrefixOperatorExpression(right: obj.MObject | null) {
     const value = (right as obj.Integer).Value
     return new obj.Integer(-value)
 }
+
+function toBoolObj(input: boolean): obj.Boolean {
+    if (input) return TRUE_BOBJ
+    return FALSE_BOBJ
+}
+
 function evalIntInfixExpression(operator: string, left: obj.MObject | null, right: obj.MObject | null): obj.MObject | null {
     const leftVal = (left as obj.Integer).Value
     const rightVal = (right as obj.Integer).Value
@@ -48,6 +54,14 @@ function evalIntInfixExpression(operator: string, left: obj.MObject | null, righ
             return new obj.Integer(leftVal * rightVal)
         case '/':
             return new obj.Integer(leftVal / rightVal)
+        case '<':
+            return toBoolObj(leftVal < rightVal)
+        case '>':
+            return toBoolObj(leftVal > rightVal)
+        case '==':
+            return toBoolObj(leftVal == rightVal)
+        case '!=':
+            return toBoolObj(leftVal != rightVal)
         default:
             return null
     }
