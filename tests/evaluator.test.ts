@@ -61,6 +61,8 @@ describe('Evaluator', () => {
         const tests = [
             { input: 'true', expected: true },
             { input: 'false', expected: false },
+            { input: "true", expected: true },
+            { input: "false", expected: false },
         ]
 
         for (const tt of tests) {
