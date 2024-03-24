@@ -5,14 +5,14 @@ export interface MObject {
     Inspect: () => string
 }
 
-const INT_OBJ: ObjectType = 'INTEGER'
-const BOOL_OBJ: ObjectType = 'BOOLEAN'
-const NULL_OBJ: ObjectType = 'NULL'
+export const INT_OBJ: ObjectType = 'INTEGER'
+export const BOOL_OBJ: ObjectType = 'BOOLEAN'
+export const NULL_OBJ: ObjectType = 'NULL'
 
 export class Integer implements MObject {
-    Value: Number
+    Value: number
 
-    constructor(val?: number) { this.Value = val ?? 0 }
+    constructor(val?: number) { this.Value = Math.floor(val ?? 0) }
     Type() { return INT_OBJ }
     Inspect() { return this.Value.toString() }
 }

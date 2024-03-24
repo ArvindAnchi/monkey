@@ -47,6 +47,8 @@ describe('Evaluator', () => {
         const tests = [
             { input: '5', expected: 5 },
             { input: '10', expected: 10 },
+            { input: '-5', expected: -5 },
+            { input: '-10', expected: -10 },
         ]
 
         for (const tt of tests) {

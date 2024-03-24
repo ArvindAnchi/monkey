@@ -27,10 +27,20 @@ function evalNotOperatorExpression(right: obj.MObject | null) {
     }
 }
 
+function evalMinusPrefixOperatorExpression(right: obj.MObject | null) {
+    if (right?.Type() !== obj.INT_OBJ) {
+        return null
+    }
+
+    const value = (right as obj.Integer).Value
+    return new obj.Integer(-value)
+}
 function evalPrefixExpression(operator: string, right: obj.MObject | null): obj.MObject | null {
     switch (operator) {
         case '!':
             return evalNotOperatorExpression(right)
+        case '-':
+            return evalMinusPrefixOperatorExpression(right)
         default:
             return null
     }
