@@ -95,6 +95,31 @@ function evalPrefixExpression(operator: string, right: obj.MObject): obj.MObject
     }
 }
 
+function isTruthy(obj: obj.MObject): boolean {
+    switch (obj) {
+        case NULL_OBJ:
+            return false
+        case FALSE_BOBJ:
+            return false
+        case TRUE_BOBJ:
+            return true
+        default:
+            return true
+    }
+}
+
+function evalIfExpression(iExp: ast.IfExpression): obj.MObject {
+    const condition = Eval(iExp.condition)
+
+    if (isTruthy(condition)) {
+        return Eval(iExp.consequence)
+    } else if (iExp.alternative != null) {
+        return Eval(iExp.alternative)
+    } else {
+        return NULL_OBJ
+    }
+}
+
 export function Eval(node: ast.Node | null): obj.MObject {
     if (node instanceof ast.Program) {
         return evalStatemets(node.statements)
@@ -123,6 +148,14 @@ export function Eval(node: ast.Node | null): obj.MObject {
         const right = Eval(node.right)
         const left = Eval(node.left)
         return evalInfixExpression(node.operator, left, right)
+    }
+
+    if (node instanceof ast.BlockStatement) {
+        return evalStatemets(node.statements)
+    }
+
+    if (node instanceof ast.IfExpression) {
+        return evalIfExpression(node)
     }
 
     return NULL_OBJ

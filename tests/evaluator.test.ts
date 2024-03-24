@@ -42,6 +42,12 @@ function testBoolObject(obj: objs.MObject, expected: boolean) {
     expect(obj.Value).toBe(expected)
 }
 
+function testNullObject(obj: objs.MObject) {
+    if (obj.Type() !== objs.NULL_OBJ) {
+        throw new Error(`Expected 'null' obj, got ${obj.Type()}`)
+    }
+}
+
 describe('Evaluator', () => {
     test('Int expression', () => {
         const tests = [
@@ -112,6 +118,28 @@ describe('Evaluator', () => {
         for (const tt of tests) {
             const evaluated = testEval(tt.input)
             testBoolObject(evaluated, tt.expected)
+        }
+    })
+
+    test('If Else expression', () => {
+        const tests = [
+            { input: "if (true) { 10 }", expected: 10 },
+            { input: "if (false) { 10 }", expected: null },
+            { input: "if (1) { 10 }", expected: 10 },
+            { input: "if (1 < 2) { 10 }", expected: 10 },
+            { input: "if (1 > 2) { 10 }", expected: null },
+            { input: "if (1 > 2) { 10 } else { 20 }", expected: 20 },
+            { input: "if (1 < 2) { 10 } else { 20 }", expected: 10 },
+        ]
+
+        for (const tt of tests) {
+            const evaluated = testEval(tt.input)
+
+            if (typeof tt.expected === 'number') {
+                testIntObject(evaluated, tt.expected)
+            } else {
+                testNullObject(evaluated)
+            }
         }
     })
 })
