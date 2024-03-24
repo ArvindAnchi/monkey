@@ -142,5 +142,20 @@ describe('Evaluator', () => {
             }
         }
     })
+
+    test('Return statement', () => {
+        const tests = [
+            { input: "return 10;", expected: 10 },
+            { input: "return 10; 9;", expected: 10 },
+            { input: "return 2 * 5; 9;", expected: 10 },
+            { input: "9; return 2 * 5; 9;", expected: 10 },
+            { input: "if (true) { if (true) { return 10 } return 1 }", expected: 10 },
+        ]
+
+        for (const tt of tests) {
+            const evaluated = testEval(tt.input)
+            testIntObject(evaluated, tt.expected)
+        }
+    })
 })
 

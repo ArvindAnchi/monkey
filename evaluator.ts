@@ -5,11 +5,29 @@ const NULL_OBJ = new obj.Null()
 const TRUE_BOBJ = new obj.Boolean(true)
 const FALSE_BOBJ = new obj.Boolean(false)
 
-function evalStatemets(stmts: ast.Statement[]): obj.MObject {
+function evalProgram(program: ast.Program): obj.MObject {
     let result: obj.MObject = NULL_OBJ
 
-    for (const stmt of stmts) {
+    for (const stmt of program.statements) {
         result = Eval(stmt)
+
+        if (result instanceof obj.Return) {
+            return result.Value
+        }
+    }
+
+    return result
+}
+
+function evalBlockStatement(block: ast.BlockStatement): obj.MObject {
+    let result: obj.MObject = NULL_OBJ
+
+    for (const stmt of block.statements) {
+        result = Eval(stmt)
+
+        if (result != null && result.Type() === obj.RETURN_OBJ) {
+            return result
+        }
     }
 
     return result
@@ -122,7 +140,7 @@ function evalIfExpression(iExp: ast.IfExpression): obj.MObject {
 
 export function Eval(node: ast.Node | null): obj.MObject {
     if (node instanceof ast.Program) {
-        return evalStatemets(node.statements)
+        return evalProgram(node)
     }
 
     if (node instanceof ast.ExpressionStatement) {
@@ -151,11 +169,16 @@ export function Eval(node: ast.Node | null): obj.MObject {
     }
 
     if (node instanceof ast.BlockStatement) {
-        return evalStatemets(node.statements)
+        return evalBlockStatement(node)
     }
 
     if (node instanceof ast.IfExpression) {
         return evalIfExpression(node)
+    }
+
+    if (node instanceof ast.ReturnStatement) {
+        const val = Eval(node.value)
+        return new obj.Return(val)
     }
 
     return NULL_OBJ

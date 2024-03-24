@@ -8,6 +8,7 @@ export interface MObject {
 export const INT_OBJ: ObjectType = 'INTEGER'
 export const BOOL_OBJ: ObjectType = 'BOOLEAN'
 export const NULL_OBJ: ObjectType = 'NULL'
+export const RETURN_OBJ: ObjectType = 'RETURN'
 
 export class Integer implements MObject {
     Value: number
@@ -28,5 +29,13 @@ export class Boolean implements MObject {
 export class Null implements MObject {
     Type() { return NULL_OBJ }
     Inspect() { return 'null' }
+}
+
+export class Return implements MObject {
+    Value: MObject
+
+    constructor(val: MObject) { this.Value = val }
+    Type() { return RETURN_OBJ }
+    Inspect() { return this.Value.Inspect() }
 }
 
