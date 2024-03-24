@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest'
 
-import * as obj from '../objects'
+import * as objs from '../objects'
 import { Lexer } from '../lexer'
 import { Parser } from '../parser'
 import { Eval } from '../evaluator'
@@ -18,24 +18,24 @@ function testEval(input: string) {
     return Eval(program)
 }
 
-function testIntObject(obj: obj.MObject | null, expected: Number) {
-    if (obj == null) {
+function testIntObject(obj: objs.MObject, expected: Number) {
+    if (obj.Type() == objs.NULL_OBJ) {
         throw new Error("Got 'null' obj")
     }
 
-    if (!is<obj.Integer>(obj, 'Value')) {
+    if (!is<objs.Integer>(obj, 'Value')) {
         throw new Error(`Expected Integer, got ${obj.Type()}`)
     }
 
     expect(obj.Value).toBe(expected)
 }
 
-function testBoolObject(obj: obj.MObject | null, expected: boolean) {
-    if (obj == null) {
+function testBoolObject(obj: objs.MObject, expected: boolean) {
+    if (obj.Type() == objs.NULL_OBJ) {
         throw new Error("Got 'null' obj")
     }
 
-    if (!is<obj.Boolean>(obj, 'Value')) {
+    if (!is<objs.Boolean>(obj, 'Value')) {
         throw new Error(`Expected Boolean, got ${obj.Type()}`)
     }
 

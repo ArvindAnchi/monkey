@@ -1,11 +1,12 @@
 import * as obj from './objects'
 import * as ast from './ast'
 
+const NULL_OBJ = new obj.Null()
 const TRUE_BOBJ = new obj.Boolean(true)
 const FALSE_BOBJ = new obj.Boolean(false)
 
-function evalStatemets(stmts: ast.Statement[]): obj.MObject | null {
-    let result: obj.MObject | null = null
+function evalStatemets(stmts: ast.Statement[]): obj.MObject {
+    let result: obj.MObject = NULL_OBJ
 
     for (const stmt of stmts) {
         result = Eval(stmt)
@@ -14,7 +15,7 @@ function evalStatemets(stmts: ast.Statement[]): obj.MObject | null {
     return result
 }
 
-function evalNotOperatorExpression(right: obj.MObject | null) {
+function evalNotOperatorExpression(right: obj.MObject) {
     switch (right) {
         case TRUE_BOBJ:
             return FALSE_BOBJ
@@ -27,9 +28,9 @@ function evalNotOperatorExpression(right: obj.MObject | null) {
     }
 }
 
-function evalMinusPrefixOperatorExpression(right: obj.MObject | null) {
+function evalMinusPrefixOperatorExpression(right: obj.MObject) {
     if (right?.Type() !== obj.INT_OBJ) {
-        return null
+        return NULL_OBJ
     }
 
     const value = (right as obj.Integer).Value
@@ -41,7 +42,7 @@ function toBoolObj(input: boolean): obj.Boolean {
     return FALSE_BOBJ
 }
 
-function evalIntInfixExpression(operator: string, left: obj.MObject | null, right: obj.MObject | null): obj.MObject | null {
+function evalIntInfixExpression(operator: string, left: obj.MObject, right: obj.MObject): obj.MObject {
     const leftVal = (left as obj.Integer).Value
     const rightVal = (right as obj.Integer).Value
 
@@ -63,11 +64,11 @@ function evalIntInfixExpression(operator: string, left: obj.MObject | null, righ
         case '!=':
             return toBoolObj(leftVal != rightVal)
         default:
-            return null
+            return NULL_OBJ
     }
 }
 
-function evalInfixExpression(operator: string, left: obj.MObject | null, right: obj.MObject | null): obj.MObject | null {
+function evalInfixExpression(operator: string, left: obj.MObject, right: obj.MObject): obj.MObject {
     if (left?.Type() === obj.INT_OBJ && right?.Type() === obj.INT_OBJ) {
         return evalIntInfixExpression(operator, left, right)
     }
@@ -80,21 +81,21 @@ function evalInfixExpression(operator: string, left: obj.MObject | null, right: 
         return toBoolObj(left !== right)
     }
 
-    return null
+    return NULL_OBJ
 }
 
-function evalPrefixExpression(operator: string, right: obj.MObject | null): obj.MObject | null {
+function evalPrefixExpression(operator: string, right: obj.MObject): obj.MObject {
     switch (operator) {
         case '!':
             return evalNotOperatorExpression(right)
         case '-':
             return evalMinusPrefixOperatorExpression(right)
         default:
-            return null
+            return NULL_OBJ
     }
 }
 
-export function Eval(node: ast.Node | null): obj.MObject | null {
+export function Eval(node: ast.Node | null): obj.MObject {
     if (node instanceof ast.Program) {
         return evalStatemets(node.statements)
     }
@@ -124,6 +125,6 @@ export function Eval(node: ast.Node | null): obj.MObject | null {
         return evalInfixExpression(node.operator, left, right)
     }
 
-    return null
+    return NULL_OBJ
 }
 
