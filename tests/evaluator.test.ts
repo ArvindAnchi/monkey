@@ -20,7 +20,7 @@ function testEval(input: string) {
 
 function testIntObject(obj: objs.MObject, expected: Number) {
     if (obj.Type() == objs.NULL_OBJ) {
-        throw new Error("Got 'null' obj")
+        throw new Error("Expected Boolean, got 'null' obj")
     }
 
     if (!is<objs.Integer>(obj, 'Value')) {
@@ -32,7 +32,7 @@ function testIntObject(obj: objs.MObject, expected: Number) {
 
 function testBoolObject(obj: objs.MObject, expected: boolean) {
     if (obj.Type() == objs.NULL_OBJ) {
-        throw new Error("Got 'null' obj")
+        throw new Error("Expected Boolean, got 'null' obj")
     }
 
     if (!is<objs.Boolean>(obj, 'Value')) {
