@@ -72,6 +72,14 @@ function evalInfixExpression(operator: string, left: obj.MObject | null, right: 
         return evalIntInfixExpression(operator, left, right)
     }
 
+    if (operator === '==') {
+        return toBoolObj(left === right)
+    }
+
+    if (operator === '!=') {
+        return toBoolObj(left !== right)
+    }
+
     return null
 }
 
