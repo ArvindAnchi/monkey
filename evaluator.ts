@@ -35,6 +35,32 @@ function evalMinusPrefixOperatorExpression(right: obj.MObject | null) {
     const value = (right as obj.Integer).Value
     return new obj.Integer(-value)
 }
+function evalIntInfixExpression(operator: string, left: obj.MObject | null, right: obj.MObject | null): obj.MObject | null {
+    const leftVal = (left as obj.Integer).Value
+    const rightVal = (right as obj.Integer).Value
+
+    switch (operator) {
+        case '+':
+            return new obj.Integer(leftVal + rightVal)
+        case '-':
+            return new obj.Integer(leftVal - rightVal)
+        case '*':
+            return new obj.Integer(leftVal * rightVal)
+        case '/':
+            return new obj.Integer(leftVal / rightVal)
+        default:
+            return null
+    }
+}
+
+function evalInfixExpression(operator: string, left: obj.MObject | null, right: obj.MObject | null): obj.MObject | null {
+    if (left?.Type() === obj.INT_OBJ && right?.Type() === obj.INT_OBJ) {
+        return evalIntInfixExpression(operator, left, right)
+    }
+
+    return null
+}
+
 function evalPrefixExpression(operator: string, right: obj.MObject | null): obj.MObject | null {
     switch (operator) {
         case '!':
@@ -68,6 +94,12 @@ export function Eval(node: ast.Node | null): obj.MObject | null {
     if (node instanceof ast.PrefixExpression) {
         const right = Eval(node.right)
         return evalPrefixExpression(node.operator, right)
+    }
+
+    if (node instanceof ast.InfixExpression) {
+        const right = Eval(node.right)
+        const left = Eval(node.left)
+        return evalInfixExpression(node.operator, left, right)
     }
 
     return null
