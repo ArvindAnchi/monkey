@@ -14,6 +14,10 @@ function evalProgram(program: ast.Program): obj.MObject {
         if (result instanceof obj.Return) {
             return result.Value
         }
+
+        if (result instanceof obj.Err) {
+            return result
+        }
     }
 
     return result
@@ -25,8 +29,12 @@ function evalBlockStatement(block: ast.BlockStatement): obj.MObject {
     for (const stmt of block.statements) {
         result = Eval(stmt)
 
-        if (result != null && result.Type() === obj.RETURN_OBJ) {
-            return result
+        if (result != null) {
+            const rt = result.Type()
+
+            if (rt === obj.RETURN_OBJ || rt === obj.ERROR_OBJ) {
+                return result
+            }
         }
     }
 
@@ -48,7 +56,7 @@ function evalNotOperatorExpression(right: obj.MObject) {
 
 function evalMinusPrefixOperatorExpression(right: obj.MObject) {
     if (right?.Type() !== obj.INT_OBJ) {
-        return NULL_OBJ
+        return newError(`unknown operator: -${right.Type()}`)
     }
 
     const value = (right as obj.Integer).Value
@@ -99,7 +107,11 @@ function evalInfixExpression(operator: string, left: obj.MObject, right: obj.MOb
         return toBoolObj(left !== right)
     }
 
-    return NULL_OBJ
+    if (left?.Type() != right?.Type()) {
+        return newError(`type mismatch: ${left.Type()} ${operator} ${right.Type()}`)
+    }
+
+    return newError(`unknown operator: ${left.Type()} ${operator} ${right.Type()}`)
 }
 
 function evalPrefixExpression(operator: string, right: obj.MObject): obj.MObject {
@@ -109,7 +121,7 @@ function evalPrefixExpression(operator: string, right: obj.MObject): obj.MObject
         case '-':
             return evalMinusPrefixOperatorExpression(right)
         default:
-            return NULL_OBJ
+            return newError(`unknown operator: ${operator}${right.Type()}`)
     }
 }
 
@@ -129,6 +141,10 @@ function isTruthy(obj: obj.MObject): boolean {
 function evalIfExpression(iExp: ast.IfExpression): obj.MObject {
     const condition = Eval(iExp.condition)
 
+    if (isError(condition)) {
+        return condition
+    }
+
     if (isTruthy(condition)) {
         return Eval(iExp.consequence)
     } else if (iExp.alternative != null) {
@@ -136,6 +152,18 @@ function evalIfExpression(iExp: ast.IfExpression): obj.MObject {
     } else {
         return NULL_OBJ
     }
+}
+
+function newError(message: string): obj.Err {
+    return new obj.Err(message)
+}
+
+function isError(cObj: obj.MObject): boolean {
+    if (cObj == null) {
+        return false
+    }
+
+    return cObj.Type() === obj.ERROR_OBJ
 }
 
 export function Eval(node: ast.Node | null): obj.MObject {
@@ -159,12 +187,27 @@ export function Eval(node: ast.Node | null): obj.MObject {
 
     if (node instanceof ast.PrefixExpression) {
         const right = Eval(node.right)
+
+        if (isError(right)) {
+            return right
+        }
+
         return evalPrefixExpression(node.operator, right)
     }
 
     if (node instanceof ast.InfixExpression) {
         const right = Eval(node.right)
+
+        if (isError(right)) {
+            return right
+        }
+
         const left = Eval(node.left)
+
+        if (isError(left)) {
+            return left
+        }
+
         return evalInfixExpression(node.operator, left, right)
     }
 
@@ -178,6 +221,11 @@ export function Eval(node: ast.Node | null): obj.MObject {
 
     if (node instanceof ast.ReturnStatement) {
         const val = Eval(node.value)
+
+        if (isError(val)) {
+            return val
+        }
+
         return new obj.Return(val)
     }
 

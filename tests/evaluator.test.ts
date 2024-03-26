@@ -157,5 +157,27 @@ describe('Evaluator', () => {
             testIntObject(evaluated, tt.expected)
         }
     })
+
+    test('Error handling', () => {
+        const tests = [
+            { input: "5 + true;", eMsg: "type mismatch: INTEGER + BOOLEAN", },
+            { input: "5 + true; 5;", eMsg: "type mismatch: INTEGER + BOOLEAN", },
+            { input: "-true", eMsg: "unknown operator: -BOOLEAN", },
+            { input: "true + false;", eMsg: "unknown operator: BOOLEAN + BOOLEAN", },
+            { input: "5; true + false; 5", eMsg: "unknown operator: BOOLEAN + BOOLEAN", },
+            { input: "if (10 > 1) { true + false; }", eMsg: "unknown operator: BOOLEAN + BOOLEAN", },
+            { input: 'if (10 > 1) { if (10 > 1) { return true + false; }  return 1; }', eMsg: "unknown operator: BOOLEAN + BOOLEAN", },
+        ]
+
+        for (const tt of tests) {
+            const evaluated = testEval(tt.input)
+
+            if (!is<objs.Err>(evaluated, 'message')) {
+                throw new Error(`Expected Err_Oject, got ${evaluated.Type()}`)
+            }
+
+            expect(evaluated.message).toBe(tt.eMsg)
+        }
+    })
 })
 

@@ -9,6 +9,7 @@ export const INT_OBJ: ObjectType = 'INTEGER'
 export const BOOL_OBJ: ObjectType = 'BOOLEAN'
 export const NULL_OBJ: ObjectType = 'NULL'
 export const RETURN_OBJ: ObjectType = 'RETURN'
+export const ERROR_OBJ: ObjectType = 'ERROR'
 
 export class Integer implements MObject {
     Value: number
@@ -39,3 +40,10 @@ export class Return implements MObject {
     Inspect() { return this.Value.Inspect() }
 }
 
+export class Err implements MObject {
+    message: string
+
+    constructor(msg: string) { this.message = msg }
+    Type() { return ERROR_OBJ }
+    Inspect() { return `ERROR: ${this.message}` }
+}
