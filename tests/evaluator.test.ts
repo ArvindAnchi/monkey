@@ -169,6 +169,7 @@ describe('Evaluator', () => {
             { input: "5; true + false; 5", eMsg: "unknown operator: BOOLEAN + BOOLEAN", },
             { input: "if (10 > 1) { true + false; }", eMsg: "unknown operator: BOOLEAN + BOOLEAN", },
             { input: 'if (10 > 1) { if (10 > 1) { return true + false; }  return 1; }', eMsg: "unknown operator: BOOLEAN + BOOLEAN", },
+            { input: 'foobar', eMsg: "identifier not found: foobar", },
         ]
 
         for (const tt of tests) {
@@ -179,6 +180,20 @@ describe('Evaluator', () => {
             }
 
             expect(evaluated.message).toBe(tt.eMsg)
+        }
+    })
+
+    test('Let statement', () => {
+        const tests = [
+            { input: "let a = 5; a;", expected: 5 },
+            { input: "let a = 5 * 5; a;", expected: 25 },
+            { input: "let a = 5; let b = a; b;", expected: 5 },
+            { input: "let a = 5; let b = a; let c = a + b + 5; c;", expected: 15 },
+        ]
+
+        for (const tt of tests) {
+            const evaluated = testEval(tt.input)
+            testIntObject(evaluated, tt.expected)
         }
     })
 })

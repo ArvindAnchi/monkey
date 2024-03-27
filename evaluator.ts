@@ -167,6 +167,14 @@ function isError(cObj: obj.MObject): boolean {
     return cObj.Type() === obj.ERROR_OBJ
 }
 
+function evalIdentifier(node: ast.Identifier | null, env: Environment) {
+    if (node == null) { throw new Error('Got null node') }
+
+    const val = env.get(node.value)
+
+    return val
+}
+
 export function Eval(node: ast.Node | null, env: Environment): obj.MObject {
     if (node instanceof ast.Program) {
         return evalProgram(node, env)
@@ -220,6 +228,10 @@ export function Eval(node: ast.Node | null, env: Environment): obj.MObject {
         return evalIfExpression(node, env)
     }
 
+    if (node instanceof ast.Identifier) {
+        return evalIdentifier(node, env)
+    }
+
     if (node instanceof ast.ReturnStatement) {
         const val = Eval(node.value, env)
 
@@ -228,6 +240,15 @@ export function Eval(node: ast.Node | null, env: Environment): obj.MObject {
         }
 
         return new obj.Return(val)
+    }
+
+    if (node instanceof ast.LetStatement) {
+        const val = Eval(node.value, env)
+
+        if (isError(val)) { return val }
+        if (node.name == null) { throw new Error('Got null node') }
+
+        env.set(node.name.value, val)
     }
 
     return NULL_OBJ
