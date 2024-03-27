@@ -4,11 +4,13 @@ import { stdin as input, stdout as output } from 'node:process'
 import { Lexer } from './lexer'
 import { Parser } from './parser'
 import { Eval } from './evaluator'
+import { Environment } from './env'
 
 const prompt = '>> '
 
 export async function start() {
     const rl = createInterface({ input, output })
+    const env = new Environment()
 
     while (true) {
         const c = await rl.question(prompt)
@@ -37,7 +39,7 @@ export async function start() {
 
         console.log('  Parsed:', program.asString())
 
-        const evaluated = Eval(program)
+        const evaluated = Eval(program, env)
 
         if (evaluated == null) {
             console.log('  Error: Could not evaluate')

@@ -1,15 +1,16 @@
 import * as obj from './objects'
 import * as ast from './ast'
+import { Environment } from './env'
 
 const NULL_OBJ = new obj.Null()
 const TRUE_BOBJ = new obj.Boolean(true)
 const FALSE_BOBJ = new obj.Boolean(false)
 
-function evalProgram(program: ast.Program): obj.MObject {
+function evalProgram(program: ast.Program, env: Environment): obj.MObject {
     let result: obj.MObject = NULL_OBJ
 
     for (const stmt of program.statements) {
-        result = Eval(stmt)
+        result = Eval(stmt, env)
 
         if (result instanceof obj.Return) {
             return result.Value
@@ -23,11 +24,11 @@ function evalProgram(program: ast.Program): obj.MObject {
     return result
 }
 
-function evalBlockStatement(block: ast.BlockStatement): obj.MObject {
+function evalBlockStatement(block: ast.BlockStatement, env: Environment): obj.MObject {
     let result: obj.MObject = NULL_OBJ
 
     for (const stmt of block.statements) {
-        result = Eval(stmt)
+        result = Eval(stmt, env)
 
         if (result != null) {
             const rt = result.Type()
@@ -138,17 +139,17 @@ function isTruthy(obj: obj.MObject): boolean {
     }
 }
 
-function evalIfExpression(iExp: ast.IfExpression): obj.MObject {
-    const condition = Eval(iExp.condition)
+function evalIfExpression(iExp: ast.IfExpression, env: Environment): obj.MObject {
+    const condition = Eval(iExp.condition, env)
 
     if (isError(condition)) {
         return condition
     }
 
     if (isTruthy(condition)) {
-        return Eval(iExp.consequence)
+        return Eval(iExp.consequence, env)
     } else if (iExp.alternative != null) {
-        return Eval(iExp.alternative)
+        return Eval(iExp.alternative, env)
     } else {
         return NULL_OBJ
     }
@@ -166,13 +167,13 @@ function isError(cObj: obj.MObject): boolean {
     return cObj.Type() === obj.ERROR_OBJ
 }
 
-export function Eval(node: ast.Node | null): obj.MObject {
+export function Eval(node: ast.Node | null, env: Environment): obj.MObject {
     if (node instanceof ast.Program) {
-        return evalProgram(node)
+        return evalProgram(node, env)
     }
 
     if (node instanceof ast.ExpressionStatement) {
-        return Eval(node.expression)
+        return Eval(node.expression, env)
     }
 
     if (node instanceof ast.IntegerLiteral) {
@@ -186,7 +187,7 @@ export function Eval(node: ast.Node | null): obj.MObject {
     }
 
     if (node instanceof ast.PrefixExpression) {
-        const right = Eval(node.right)
+        const right = Eval(node.right, env)
 
         if (isError(right)) {
             return right
@@ -196,13 +197,13 @@ export function Eval(node: ast.Node | null): obj.MObject {
     }
 
     if (node instanceof ast.InfixExpression) {
-        const right = Eval(node.right)
+        const right = Eval(node.right, env)
 
         if (isError(right)) {
             return right
         }
 
-        const left = Eval(node.left)
+        const left = Eval(node.left, env)
 
         if (isError(left)) {
             return left
@@ -212,15 +213,15 @@ export function Eval(node: ast.Node | null): obj.MObject {
     }
 
     if (node instanceof ast.BlockStatement) {
-        return evalBlockStatement(node)
+        return evalBlockStatement(node, env)
     }
 
     if (node instanceof ast.IfExpression) {
-        return evalIfExpression(node)
+        return evalIfExpression(node, env)
     }
 
     if (node instanceof ast.ReturnStatement) {
-        const val = Eval(node.value)
+        const val = Eval(node.value, env)
 
         if (isError(val)) {
             return val

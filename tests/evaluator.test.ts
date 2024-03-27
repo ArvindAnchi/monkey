@@ -4,6 +4,7 @@ import * as objs from '../objects'
 import { Lexer } from '../lexer'
 import { Parser } from '../parser'
 import { Eval } from '../evaluator'
+import { Environment } from '../env'
 
 function is<T>(obj: any, param: string): obj is T {
     return param in obj
@@ -12,10 +13,11 @@ function is<T>(obj: any, param: string): obj is T {
 function testEval(input: string) {
     const lexer = new Lexer(input)
     const parser = new Parser(lexer)
+    const env = new Environment()
 
     const program = parser.parseProgram()
 
-    return Eval(program)
+    return Eval(program, env)
 }
 
 function testIntObject(obj: objs.MObject, expected: Number) {
