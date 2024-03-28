@@ -196,5 +196,18 @@ describe('Evaluator', () => {
             testIntObject(evaluated, tt.expected)
         }
     })
+
+    test('Function object', () => {
+        const input = "fn(x) { x + 2; };"
+        const evaluated = testEval(input)
+
+        if (!is<objs.Function>(evaluated, 'params')) {
+            throw new Error(`Expected Function, got ${evaluated.Type()}`)
+        }
+
+        expect(evaluated.params).toHaveLength(1)
+        expect(evaluated.params.at(0)?.asString()).toBe('x')
+        expect(evaluated.body?.asString()).toBe('(x + 2)')
+    })
 })
 

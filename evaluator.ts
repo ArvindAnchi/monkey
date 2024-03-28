@@ -251,6 +251,13 @@ export function Eval(node: ast.Node | null, env: Environment): obj.MObject {
         env.set(node.name.value, val)
     }
 
+    if (node instanceof ast.FunctionLiteral) {
+        const params = node.params
+        const body = node.body
+
+        return new obj.Function(params, body, env)
+    }
+
     return NULL_OBJ
 }
 

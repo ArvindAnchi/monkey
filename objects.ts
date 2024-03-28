@@ -1,3 +1,6 @@
+import { BlockStatement, Identifier } from "./ast"
+import { Environment } from "./env"
+
 type ObjectType = string
 
 export interface MObject {
@@ -9,6 +12,7 @@ export const INT_OBJ: ObjectType = 'INTEGER'
 export const BOOL_OBJ: ObjectType = 'BOOLEAN'
 export const NULL_OBJ: ObjectType = 'NULL'
 export const RETURN_OBJ: ObjectType = 'RETURN'
+export const FUNCTION_OBJ: ObjectType = 'FUNCTION'
 export const ERROR_OBJ: ObjectType = 'ERROR'
 
 export class Integer implements MObject {
@@ -38,6 +42,31 @@ export class Return implements MObject {
     constructor(val: MObject) { this.Value = val }
     Type() { return RETURN_OBJ }
     Inspect() { return this.Value.Inspect() }
+}
+
+export class Function implements MObject {
+    params: Identifier[]
+    body: BlockStatement | null
+    env: Environment
+
+    constructor(params: Identifier[], body: BlockStatement | null, env: Environment) {
+        this.params = params
+        this.body = body
+        this.env = env
+    }
+    Type() { return FUNCTION_OBJ }
+    Inspect() {
+        let out = ''
+
+        out += 'fn'
+        out += '('
+        out += this.params.map(p => p.asString()).join(', ')
+        out += ') {\n'
+        out += this.body?.asString()
+        out += '\n}'
+
+        return out
+    }
 }
 
 export class Err implements MObject {
