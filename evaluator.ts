@@ -175,6 +175,51 @@ function evalIdentifier(node: ast.Identifier | null, env: Environment) {
     return val
 }
 
+function evalExpression(expList: (ast.Expression | null)[], env: Environment): obj.MObject[] {
+    const result: obj.MObject[] = []
+
+    for (const e of expList) {
+        const evaluated = Eval(e, env)
+
+        if (isError(evaluated)) {
+            return [evaluated]
+        }
+
+        result.push(evaluated)
+    }
+
+    return result
+}
+
+function unwrapReturnValue(fobj: obj.MObject): obj.MObject {
+    if (fobj instanceof obj.Return) {
+        return fobj.Value
+    }
+
+    return fobj
+}
+
+function extendEnv(fn: obj.Function, args: obj.MObject[]): Environment {
+    const env = new Environment(fn.env)
+
+    for (const [paramIdx, param] of fn.params.entries()) {
+        env.set(param.value, args[paramIdx])
+    }
+
+    return env
+}
+
+function applyFunc(func: obj.MObject, args: obj.MObject[]): obj.MObject {
+    if (!(func instanceof obj.Function)) {
+        return newError(`Not a function: ${func.Type()}`)
+    }
+
+    const extEnv = extendEnv(func, args)
+    const evaluated = Eval(func.body, extEnv)
+
+    return evaluated
+}
+
 export function Eval(node: ast.Node | null, env: Environment): obj.MObject {
     if (node instanceof ast.Program) {
         return evalProgram(node, env)
@@ -256,6 +301,20 @@ export function Eval(node: ast.Node | null, env: Environment): obj.MObject {
         const body = node.body
 
         return new obj.Function(params, body, env)
+    }
+
+    if (node instanceof ast.CallExpression) {
+        const func = Eval(node.function, env)
+        if (isError(func)) {
+            return func
+        }
+
+        const args = evalExpression(node.args, env)
+        if (args.length == 1 && isError(args[0])) {
+            return args[0]
+        }
+
+        return applyFunc(func, args)
     }
 
     return NULL_OBJ

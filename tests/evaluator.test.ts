@@ -209,5 +209,21 @@ describe('Evaluator', () => {
         expect(evaluated.params.at(0)?.asString()).toBe('x')
         expect(evaluated.body?.asString()).toBe('(x + 2)')
     })
+
+    test('Function application', () => {
+        const tests = [
+            { input: "let identity = fn(x) { x; }; identity(5);", expected: 5 },
+            { input: "let identity = fn(x) { return x; }; identity(5);", expected: 5 },
+            { input: "let double = fn(x) { x * 2; }; double(5);", expected: 10 },
+            { input: "let add = fn(x,y) { x + y; }; add(5, 5);", expected: 10 },
+            { input: "let add = fn(x,y) { x + y; }; add(5 + 5, add(5, 5));", expected: 20 },
+            { input: "fn(x) { x; }(5)", expected: 5 }
+        ]
+
+        for (const tt of tests) {
+            const evaluated = testEval(tt.input)
+            testIntObject(evaluated, tt.expected)
+        }
+    })
 })
 
