@@ -225,5 +225,11 @@ describe('Evaluator', () => {
             testIntObject(evaluated, tt.expected)
         }
     })
+
+    test('Closure function', () => {
+        const input = `let newAdder = fn(x) { fn(y) { x + y }; }; let addTwo = newAdder(2); addTwo(2);`
+
+        testIntObject(testEval(input), 4)
+    })
 })
 
