@@ -251,7 +251,7 @@ export class FunctionLiteral implements Expression {
 export class CallExpression implements Expression {
     token: Token = new Token()
     function: Expression | null = null
-    args: (Expression | null)[] | null = []
+    args: (Expression | null)[] = []
 
     expressionNode() { }
     tokenLiteral(): string {

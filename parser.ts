@@ -311,7 +311,7 @@ export class Parser {
         }
 
         if (!parser.expectPeek(Token.RPAREN)) {
-            return null
+            return [null]
         }
 
         return args
