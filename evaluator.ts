@@ -217,7 +217,7 @@ function applyFunc(func: obj.MObject, args: obj.MObject[]): obj.MObject {
     const extEnv = extendEnv(func, args)
     const evaluated = Eval(func.body, extEnv)
 
-    return evaluated
+    return unwrapReturnValue(evaluated)
 }
 
 export function Eval(node: ast.Node | null, env: Environment): obj.MObject {

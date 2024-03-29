@@ -11,7 +11,7 @@ export class Environment {
 
     get(name: string): MObject {
         if (!(name in this.store)) {
-            if (this.outer != null && name in this.outer) {
+            if (this.outer != null && name in this.outer.store) {
                 return this.outer.get(name)
             }
 
