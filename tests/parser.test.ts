@@ -546,5 +546,33 @@ describe('Parser', () => {
         testInfixExpression(cExp?.args?.[1] ?? null, 2, '*', 3)
         testInfixExpression(cExp?.args?.[2] ?? null, 4, '+', 5)
     })
+
+    test('String lteral', () => {
+        const input = `"hello world";`
+
+        const lexer = new Lexer(input)
+        const parser = new Parser(lexer)
+
+        const program = parser.parseProgram()
+
+        checkParserErrors(parser)
+
+        expect(program).not.toBeNull()
+        expect(program.statements.length).toBe(1)
+
+        const stmt = program.statements[0]
+
+        if (!is<ast.ExpressionStatement>(stmt, 'expression')) {
+            throw new Error(`Expected ExpressionStatement, got ${stmt?.constructor.name}`)
+        }
+
+        const cExp = stmt.expression
+
+        if (!is<ast.StringLiteral>(cExp, 'value')) {
+            throw new Error(`Expected StringLiteral, got ${stmt?.constructor.name}`)
+        }
+
+        expect(cExp.value).toBe('hello world')
+    })
 })
 

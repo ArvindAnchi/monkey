@@ -205,6 +205,17 @@ export class Parser {
         }
     }
 
+    private parseStringLiteral(parser: Parser) {
+        return () => {
+            const lit = new ast.StringLiteral()
+
+            lit.token = parser.curToken
+            lit.value = parser.curToken.Literal
+
+            return lit
+        }
+    }
+
     private parsePrefixExpression(parser: Parser) {
         return () => {
             const expr = new ast.PrefixExpression()
@@ -341,6 +352,7 @@ export class Parser {
         this.registerPrefixFunc(Token.LPAREN, this.parseiGroupedLiteral(this))
         this.registerPrefixFunc(Token.IF, this.parseIfExpression(this))
         this.registerPrefixFunc(Token.FUNCTION, this.parseFunctionLiteral(this))
+        this.registerPrefixFunc(Token.STRING, this.parseStringLiteral(this))
 
         this.registerInfixFunc(Token.EQ, this.parseInfixExpression(this))
         this.registerInfixFunc(Token.NOT_EQ, this.parseInfixExpression(this))

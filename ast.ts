@@ -274,3 +274,16 @@ export class CallExpression implements Expression {
     }
 }
 
+export class StringLiteral implements Expression {
+    token: Token = new Token()
+    value: string = ''
+
+    expressionNode() { }
+    tokenLiteral(): string {
+        return this.token.Literal
+    }
+    asString() {
+        return this.token.Literal
+    }
+}
+
