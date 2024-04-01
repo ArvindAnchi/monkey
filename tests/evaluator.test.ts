@@ -231,5 +231,17 @@ describe('Evaluator', () => {
 
         testIntObject(testEval(input), 4)
     })
+
+    test('String literal', () => {
+        const input = `"Hello world!"`
+
+        const evaluated = testEval(input)
+
+        if (!is<objs.String>(evaluated, 'Value')) {
+            throw new Error(`Expected String, got ${evaluated.Type()}`)
+        }
+
+        expect(evaluated.Value).toBe('Hello world!')
+    })
 })
 

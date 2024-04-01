@@ -13,6 +13,7 @@ export const BOOL_OBJ: ObjectType = 'BOOLEAN'
 export const NULL_OBJ: ObjectType = 'NULL'
 export const RETURN_OBJ: ObjectType = 'RETURN'
 export const FUNCTION_OBJ: ObjectType = 'FUNCTION'
+export const STRING_OBJ: ObjectType = 'STRING'
 export const ERROR_OBJ: ObjectType = 'ERROR'
 
 export class Integer implements MObject {
@@ -42,6 +43,14 @@ export class Return implements MObject {
     constructor(val: MObject) { this.Value = val }
     Type() { return RETURN_OBJ }
     Inspect() { return this.Value.Inspect() }
+}
+
+export class String implements MObject {
+    Value: string
+
+    constructor(val: string) { this.Value = val }
+    Type() { return STRING_OBJ }
+    Inspect() { return this.Value }
 }
 
 export class Function implements MObject {

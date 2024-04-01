@@ -317,6 +317,10 @@ export function Eval(node: ast.Node | null, env: Environment): obj.MObject {
         return applyFunc(func, args)
     }
 
+    if (node instanceof ast.StringLiteral) {
+        return new obj.String(node.value)
+    }
+
     return NULL_OBJ
 }
 
