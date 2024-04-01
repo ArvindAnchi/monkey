@@ -38,6 +38,8 @@ export class Token {
 	static ELSE = "ELSE"
 	static RETURN = "RETURN"
 
+	static STRING = "STRING"
+
 	constructor() {
 		this.Type = ''
 		this.Literal = ''

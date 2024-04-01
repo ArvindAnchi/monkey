@@ -102,6 +102,9 @@ export class Lexer {
             case '}':
                 tok = newToken(Token.RBRACE, this.ch)
                 break
+            case '"':
+                tok = newToken(Token.STRING, this.readString())
+                break
             case '\0':
                 tok.Literal = ''
                 tok.Type = Token.EOF
@@ -161,6 +164,20 @@ export class Lexer {
 
         while (isLetter(this.ch)) {
             this.readChar()
+        }
+
+        return this.input.slice(pos, this.position)
+    }
+
+    readString() {
+        const pos = this.position + 1
+
+        while (true) {
+            this.readChar()
+
+            if (this.ch === '"' || this.ch === '\0') {
+                break
+            }
         }
 
         return this.input.slice(pos, this.position)
